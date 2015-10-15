@@ -12,7 +12,7 @@ heroDeck = [ new Hero( 'cardBack', 'Silent Sniper', 'Black Widow', 'This is test
 
 // Prepare HeadQuarters
 while( headQuarters.length < 5 ) {
-    headQuarters.push( heroDeck.shift().defineLocation((headQuarters.length*135)+208, 430, 0.35) );
+    headQuarters.push( heroDeck.shift().defineLocation((5*135)+208, 430, 0.35).defineDestination((headQuarters.length*135)+208, 430, 0.35) );
 }
 
 // Prepare the Villain Deck
@@ -26,10 +26,8 @@ villainDeck = [ new Villain( 'cardBack', 'Green Goblin', 'Sinister Syndicate', '
 
 // Prepare City TODO remove this step
 while( city.length < 5 ) {
-    city.push( villainDeck.shift().defineLocation((city.length*135)+208, 230, 0.35 ) );
+    city.push( villainDeck.shift().defineLocation((5*135)+208, 230, 0.35).defineDestination((city.length*135)+208, 230, 0.35 ) );
 }
-
-city[0].defineDestination( 10, 10, 0.35 );
 
 // Prepare Players
 for( var i = 0; i < playerCount; i++ ){

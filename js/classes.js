@@ -20,7 +20,7 @@ var Card = Class.create({
     // Class Variable(s)
     baseWidth: 360,
     baseHeight: 480,
-    movementSpeed: 200.0,
+    movementSpeed: 400.0,
     scaleSpeed: 0.625,
     // Sets the card's location and forgets its destination (returns self)
     defineLocation: function(x, y, scale){
@@ -69,7 +69,7 @@ var Card = Class.create({
     update: function(modifier,steps){
         // Updates scale
         if( this.scale != this.destScale ) {
-            if( Math.abs(this.destScale - this.scale) < this.scaleSpeed * modifier * this.scale ){
+            if( Math.abs(this.destScale - this.scale) < this.scale+(this.scaleSpeed * modifier) ){
                 this.scale = this.destScale;
             } else {
                 if( this.scale < this.destScale ){

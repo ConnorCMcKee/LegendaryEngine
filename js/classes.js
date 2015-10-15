@@ -22,6 +22,7 @@ var Card = Class.create({
     baseHeight: 480,
     movementSpeed: 400.0,
     scaleSpeed: 0.625,
+    cardType: "Undefined",
     // Sets the card's location and forgets its destination (returns self)
     defineLocation: function(x, y, scale){
         this.x = x;
@@ -126,6 +127,7 @@ var Hero = Class.create(Card, {
         this.getAttack = customGetAttack;
         this.getResource = customGetResource;
     },
+    cardType: 'Hero',
     play: function() {
         this.customPlay( this );
     }
@@ -146,6 +148,7 @@ var Villain = Class.create(Card, {
         this.customEscape = customEscape;
         this.customFight = customFight;
     },
+    cardType: 'Villain',
     ambush: function() {
         this.customAmbush( this );
     },

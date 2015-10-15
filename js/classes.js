@@ -1,37 +1,112 @@
 /* CARD (SUPER)
 -------------------------------------------------- */
 var Card = Class.create({
+    // Constructor
     initialize: function(resource, title, subtitle, text){
         this.resource = resource;
         this.title = title;
         this.subtitle = subtitle;
         this.text = text;
         this.color = 'gray';
+        // Stats regarding the card's current location
+        this.x = 0;
+        this.y = 0;
+        this.scale = 0;
+        // Stats regarding the card's destination
+        this.destX = 0;
+        this.destY = 0;
+        this.destScale = 0;
     },
-    draw: function(ctx, x, y, scale){
+    // Class Variable(s)
+    baseWidth: 360,
+    baseHeight: 480,
+    movementSpeed: 200.0,
+    scaleSpeed: 0.625,
+    // Sets the card's location and forgets its destination (returns self)
+    defineLocation: function(x, y, scale){
+        this.x = x;
+        this.destX = x;
+        this.y = y;
+        this.destY = y;
+        this.scale = scale;
+        this.destScale = scale;
+        return this;
+    },
+    // Sets the card's destination (returns self)
+    defineDestination: function(dx, dy, dscale){
+        this.destX = dx;
+        this.destY = dy;
+        this.destScale = dscale;
+        return this;
+    },
+    // Draws the card
+    draw: function(ctx){
         // Card shape in appropriate color
         ctx.fillStyle = this.color;
-        ctx.fillRect( x, y, 360*scale, 480*scale);
+        ctx.fillRect( this.x, this.y, this.baseWidth*this.scale, this.baseHeight*this.scale);
         // Card content area
         ctx.fillStyle = 'white';
-        ctx.fillRect( x+(10*scale), y+(10*scale), (360-20)*scale, (480-20)*scale );
+        ctx.fillRect( this.x+(10*this.scale), this.y+(10*this.scale), (this.baseWidth-20)*this.scale, (this.baseHeight-20)*this.scale );
         // Card title
         ctx.fillStyle = 'black';
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
-        ctx.font = 24*scale + "px Helvetica";
-        ctx.fillText( this.title, x+(360*scale/2), y+(30*scale), (360-20)*scale );
+        ctx.font = 24*this.scale + "px Helvetica";
+        ctx.fillText( this.title, this.x+(this.baseWidth*this.scale/2), this.y+(30*this.scale), (this.baseWidth-20)*this.scale );
         // Card subtitle
-        ctx.font = 18*scale + "px Helvitca";
-        ctx.fillText( this.subtitle, x+(360*scale/2), y+(48*scale), (360-20)*scale );
+        ctx.font = 18*this.scale + "px Helvitca";
+        ctx.fillText( this.subtitle, this.x+(this.baseWidth*this.scale/2), this.y+(48*this.scale), (this.baseWidth-20)*this.scale );
         // Card image (if ready)
         if (resourceReady(this.resource)) {
-            ctx.drawImage(resourceImage(this.resource), x+(15*scale), y+(60*scale), (360-30)*scale, 200*scale );
+            ctx.drawImage(resourceImage(this.resource), this.x+(15*this.scale), this.y+(60*this.scale), (this.baseWidth-30)*this.scale, 200*this.scale );
         }
         // Card text TODO support multi-line
         ctx.textBaseline = 'top';
         ctx.textAlign = 'left';
-        ctx.fillText( this.text, x+(60*scale), y+(270*scale), (360-70)*scale );
+        ctx.fillText( this.text, this.x+(60*this.scale), this.y+(270*this.scale), (this.baseWidth-70)*this.scale );
+    },
+    // Updates the card (to be rendered accordingly)
+    update: function(modifier,steps){
+        // Updates scale
+        if( this.scale != this.destScale ) {
+            if( Math.abs(this.destScale - this.scale) < this.scaleSpeed * modifier * this.scale ){
+                this.scale = this.destScale;
+            } else {
+                if( this.scale < this.destScale ){
+                    this.scale = this.scale + (this.scaleSpeed*modifier);
+                } else {
+                    this.scale = this.scale - (this.scaleSpeed*modifier);
+                }
+            }
+        }
+        // Updates position
+        if( this.x != this.destX || this.y != this.destY ){
+            // Variables for determining new position
+            var distX = Math.abs( this.destX - this.x );
+            var distY = Math.abs( this.destY - this.y );
+            var xSpeed = ( distY == 0 ? 1 : (distX/distY) ) * this.movementSpeed * modifier;
+            var ySpeed = ( distX == 0 ? 1 : (distY/distX) ) * this.movementSpeed * modifier;
+            // Updates X Position
+            if( distX < xSpeed ) {
+                this.x = parseInt( this.destX );
+            } else {
+                if( this.x < this.destX ){
+                    this.x = parseInt( this.x + xSpeed );
+                } else {
+                    this.x = parseInt( this.x - xSpeed );
+                }
+            }
+            // Updates Y Position
+            if( distY < ySpeed ) {
+                this.y = parseInt( this.destY );
+            } else {
+                if( this.y < this.destY ){
+                    this.y = parseInt( this.y + ySpeed );
+                } else {
+                    this.y = parseInt( this.y - ySpeed );
+                }
+            }
+        }
     }
 });
 
@@ -120,7 +195,12 @@ var Player = Class.create({
     },
     draw: function( ctx ){
         for( var i = 0; i < this.hand.length; i++ ){
-            this.hand[i].draw( ctx, (165*i)+50, 600, 0.4 );
+            this.hand[i].draw( ctx );
         }
+    },
+    update: function( modifier,steps ){
+        for( var i = 0; i < this.hand.length; i++ ){
+            this.hand[i].update( modifier,steps );
+        } 
     }
 });

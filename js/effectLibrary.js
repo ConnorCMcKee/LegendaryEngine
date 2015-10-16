@@ -1,9 +1,6 @@
-var testing = 0;
-
 /* PLAY FUNCTIONS
 -------------------------------------------------- */
 var basePlay = function( card ){
-    testing += 1;
     card.customAttack( card );
     card.customResource( card );
     return;
@@ -13,23 +10,41 @@ var basePlay = function( card ){
 /* GET ATTACK FUNCTIONS
 -------------------------------------------------- */
 var baseGetAttack = function( card ){
-    testing += 1;
     return card.baseAttack;
+}
+
+
+/* GET COST FUNCTIONS
+-------------------------------------------------- */
+var baseGetCost = function( card ){
+    return card.baseCost;
 }
 
 
 /* GET RESOURCE FUNCTIONS
 -------------------------------------------------- */
 var baseGetResource = function( card ){
-    testing += 1;
     return card.baseResource;
 }
 
 
+/* GET SCORE FUNCTIONS
+-------------------------------------------------- */
+var baseGetScore = function( card ){
+    return card.baseScore;
+}
+
+
+/* GET STRENGTH FUNCTIONS
+-------------------------------------------------- */
+var baseGetStrength = function( card ){
+    return card.baseStrength;
+}
+
 /* AMBUSH FUNCTIONS
 -------------------------------------------------- */
 var baseAmbush = function( card ){
-    testing += 1;
+    alert( card.title + ' Ambushed You!' );
     return;
 }
 
@@ -37,7 +52,7 @@ var baseAmbush = function( card ){
 /* ESCAPE FUNCTIONS
 -------------------------------------------------- */
 var baseEscape = function( card ){
-    testing += 1;
+    alert( card.title + ' Escaped!' );
     return;
 }
 
@@ -45,6 +60,21 @@ var baseEscape = function( card ){
 /* FIGHT FUNCTIONS
 -------------------------------------------------- */
 var baseFight = function( card ){
-    testing += 1;
+    alert( card.title + ' Fought!' );
+    return;
+}
+
+
+/* RESCUE FUNCTIONS
+-------------------------------------------------- */
+var baseMasterStrike = function( card ){
+    alert( "You've been... Masterstruck! (by " + card.title + ")" )
+}
+
+
+/* RESCUE FUNCTIONS
+-------------------------------------------------- */
+var baseRescue = function( card ){
+    alert( card.title + ' was Rescued!' );
     return;
 }

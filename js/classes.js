@@ -2,12 +2,12 @@
 -------------------------------------------------- */
 var Card = Class.create({
     // Constructor
-    initialize: function(resource, title, subtitle, text){
-        this.resource = resource;
-        this.title = title;
-        this.subtitle = subtitle;
-        this.text = text;
-        this.color = 'gray';
+    initialize: function(image, title, subtitle, text){
+        this.image = image || 'cardBack';
+        this.title = title || 'NO NAME';
+        this.subtitle = subtitle || '';
+        this.text = text || '';
+        this.colors = ['gray'];
         // Stats regarding the card's current location
         this.x = 0;
         this.y = 0;
@@ -43,7 +43,7 @@ var Card = Class.create({
     // Draws the card
     draw: function(ctx){
         // Card shape in appropriate color
-        ctx.fillStyle = this.color;
+        ctx.fillStyle = this.colors[0]; // TODO gradient
         ctx.fillRect( this.x, this.y, this.baseWidth*this.scale, this.baseHeight*this.scale);
         // Card content area
         ctx.fillStyle = 'white';
@@ -58,8 +58,8 @@ var Card = Class.create({
         ctx.font = 18*this.scale + "px Helvitca";
         ctx.fillText( this.subtitle, this.x+(this.baseWidth*this.scale/2), this.y+(48*this.scale), (this.baseWidth-20)*this.scale );
         // Card image (if ready)
-        if (resourceReady(this.resource)) {
-            ctx.drawImage(resourceImage(this.resource), this.x+(15*this.scale), this.y+(60*this.scale), (this.baseWidth-30)*this.scale, 200*this.scale );
+        if (resourceReady(this.image)) {
+            ctx.drawImage(resourceImage(this.image), this.x+(15*this.scale), this.y+(60*this.scale), (this.baseWidth-30)*this.scale, 200*this.scale );
         }
         // Card text TODO support multi-line
         ctx.textBaseline = 'top';
@@ -112,41 +112,91 @@ var Card = Class.create({
 });
 
 
+/* BYSTANDER
+-------------------------------------------------- */
+var Bystander = Class.create(Card, {
+    initialize: function($super, options ){
+        $super( options.image, options.title, options.subtitle, options.text );
+        this.baseScore = options.baseScore || 1;
+        this.getScore = options.getScore || baseGetScore;
+        this.customRescue = options.customRescue || baseRescue;
+    },
+    cardType: 'Bystander',
+    rescue: function() {
+        this.customRescue( this );
+    }
+});
+
+
+// TODO rework subtitles
 
 /* HERO
 -------------------------------------------------- */
 var Hero = Class.create(Card, {
-    initialize: function($super, resource, title, subtitle, text, team, color, cost, baseAttack, baseResource, customPlay, customGetAttack, customGetResource ){
-        $super( resource, title, subtitle, text );
-        this.team = team;
-        this.color = color;
-        this.cost = cost;
-        this.baseAttack = baseAttack;
-        this.baseResource = baseResource;
-        this.customPlay = customPlay;
-        this.getAttack = customGetAttack;
-        this.getResource = customGetResource;
+    initialize: function($super, options ){
+        $super( options.image, options.title, options.subtitle, options.text );
+        this.team = options.team;
+        this.colors = options.colors || ['gray'];
+        this.baseCost = options.baseCost || 0;
+        this.baseAttack = options.baseAttack || 0;
+        this.baseResource = options.baseResource || 0;
+        this.customPlay = options.customPlay || basePlay;
+        this.getCost = options.getCost || baseGetCost;
+        this.getAttack = options.customGetAttack || baseGetAttack;
+        this.getResource = options.customGetResource || baseGetResource;
     },
     cardType: 'Hero',
+    attack: function() {
+        return this.getAttack( this );
+    },
+    cost: function() {
+        return this.getCost( this );
+    },
+    resource: function() {
+        return this.getResource( this );
+    },
     play: function() {
         this.customPlay( this );
     }
 });
 
 
+/* MASTERMIND
+-------------------------------------------------- */
+var Mastermind = Class.create(Card, {
+   initialize: function($super, options ){
+        $super( options.image, options.title, 'Mastermind', options.text );
+        this.baseScore = options.baseScore || 1;
+        this.baseStrength = options.baseStrength || 1;
+        this.getScore = options.getScore || baseGetScore;
+        this.getStrength = options.getStrength || baseGetStrength;
+        this.alwaysLeads = options.alwaysLeads;
+        this.customMasterStrike = options.customMasterStrike || baseMasterStrike;
+    },
+    cardType: 'Mastermind',
+    score: function() {
+        return this.getScore( this );
+    },
+    strength: function() {
+        return this.getStrength( this );
+    }
+});
+
 
 /* VILLAIN
 -------------------------------------------------- */
 var Villain = Class.create(Card, {
-    initialize: function($super, resource, title, subtitle, text, type, score, baseStrength, getStrength, customAmbush, customEscape, customFight ){
-        $super( resource, title, subtitle, text );
-        this.type = type;
-        this.score = score;
-        this.baseStrength = baseStrength;
-        this.getStrength = getStrength;
-        this.customAmbush = customAmbush;
-        this.customEscape = customEscape;
-        this.customFight = customFight;
+    initialize: function($super, options ){
+        this.team = options.team
+        this.subtype = options.subtype || 'Villain';
+        $super( options.image, options.title, this.subtype + ' - ' + this.team, options.text );
+        this.baseScore = options.baseScore || 1;
+        this.baseStrength = options.baseStrength || 1;
+        this.getScore = options.getScore || baseGetScore;
+        this.getStrength = options.getStrength || baseGetStrength;
+        this.customAmbush = options.customAmbush || baseAmbush;
+        this.customEscape = options.customEscape || baseEscape;
+        this.customFight = options.customFight || baseFight;
     },
     cardType: 'Villain',
     ambush: function() {
@@ -157,6 +207,12 @@ var Villain = Class.create(Card, {
     },
     fight: function() {
         this.customFight( this );
+    },
+    score: function() {
+        return this.getScore( this );
+    },
+    strength: function() {
+        return this.getStrength( this );
     }
 });
 
@@ -168,8 +224,14 @@ var Player = Class.create({
         this.playerNumber = playerNumber;
         this.hand = [];
         // Builds the starting deck
-        var trooper = new Hero( 'cardBack', 'Shield Trooper', 'Shield', '', 'Shield', 'gray', 0, 1, 0, basePlay, baseGetAttack, baseGetResource );
-        var agent = new Hero( 'cardBack', 'Shield Agent', 'Shield', '', 'Shield', 'gray', 0, 0, 1, basePlay, baseGetAttack, baseGetResource );
+        var trooper = new Hero( { title: 'Shield Trooper',
+                                  subtitle: 'Shield',
+                                  team: 'Shield',
+                                  baseAttack: 1 } );
+        var agent = new Hero( { title: 'Shield Agent',
+                                subtitle: 'Shield',
+                                team: 'Shield',
+                                baseResource: 1 } );
         this.drawDeck = shuffle( Array.apply(null, Array(4)).map(function(){return trooper}).concat( Array.apply(null, Array(8)).map(function(){return agent}) ) );
         this.discardPile = [];
     },

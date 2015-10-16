@@ -1,9 +1,9 @@
-/* RECOURCES HASH
+/* RESOURCES HASH
 -------------------------------------------------- */
 var resources = {};
 
 
-/* RECOURCES METHODS
+/* RESOURCES METHODS
 -------------------------------------------------- */
 // Add Resource
 var addResource = function( name, path ) {

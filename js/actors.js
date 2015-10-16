@@ -1,22 +1,77 @@
 /* ACTOR VARIABLES
 -------------------------------------------------- */
+// Prepare Bystander Deck
+var sampleBystanderStats = { title: 'Bystander',
+                             text: 'I am a bystander',
+                             baseScore: 1 }
+
+bystanderDeck = [ new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ) ]
+
 // Prepare Hero Deck
-heroDeck = [ new Hero( 'cardBack', 'Silent Sniper', 'Black Widow', 'This is test text', 'Avengers', 'Red', 7, 3, 0, basePlay, baseGetAttack, baseGetResource ),
-             new Hero( 'cardBack', 'Silent Sniper', 'Black Widow', 'This is test text', 'Avengers', 'Red', 7, 3, 0, basePlay, baseGetAttack, baseGetResource ),
-             new Hero( 'cardBack', 'Silent Sniper', 'Black Widow', 'This is test text', 'Avengers', 'Red', 7, 3, 0, basePlay, baseGetAttack, baseGetResource ),
-             new Hero( 'cardBack', 'Silent Sniper', 'Black Widow', 'This is test text', 'Avengers', 'Red', 7, 3, 0, basePlay, baseGetAttack, baseGetResource ),
-             new Hero( 'cardBack', 'Silent Sniper', 'Black Widow', 'This is test text', 'Avengers', 'Red', 7, 3, 0, basePlay, baseGetAttack, baseGetResource ),
-             new Hero( 'cardBack', 'Silent Sniper', 'Black Widow', 'This is test text', 'Avengers', 'Red', 7, 3, 0, basePlay, baseGetAttack, baseGetResource ),
-             new Hero( 'cardBack', 'Silent Sniper', 'Black Widow', 'This is test text', 'Avengers', 'Red', 7, 3, 0, basePlay, baseGetAttack, baseGetResource ) ]
+var sampleHeroStats = { title: 'Silent Sniper',
+                        subtitle: 'Black Widow',
+                        text: 'This is test text',
+                        team: 'Avengers',
+                        colors: ['Red'],
+                        baseCost: 7,
+                        baseAttack: 3 }
+
+heroDeck = [ new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ) ]
+
+// Prepare Mastermind (and Deck)
+mastermind = new Mastermind( { title: 'Magneto',
+                               text: 'A wizard is never late...',
+                               alwaysLeads: 'Brotherhood',
+                               baseScore: 5,
+                               baseStrength: 5 } ).defineLocation( 60, 250, 0.35 );
+
+var sampleMastermindTacticStats = { title: 'First Tactic!',
+                                    team: mastermind.title,
+                                    subtype: 'Mastermind Tactic',
+                                    text: 'FIGHT: This is a tactic',
+                                    baseScore: mastermind.baseScore,
+                                    baseStrength: mastermind.baseStrength }
+
+mastermindDeck = [ new Villain( sampleMastermindTacticStats),
+                   new Villain( sampleMastermindTacticStats),
+                   new Villain( sampleMastermindTacticStats),
+                   new Villain( sampleMastermindTacticStats) ]
 
 // Prepare the Villain Deck
-villainDeck = [ new Villain( 'cardBack', 'Green Goblin', 'Sinister Syndicate', 'This is test text', 'Villain', 5, 5, baseAmbush, baseEscape, baseFight ),
-                new Villain( 'cardBack', 'Green Goblin', 'Sinister Syndicate', 'This is test text', 'Villain', 5, 5, baseAmbush, baseEscape, baseFight ),
-                new Villain( 'cardBack', 'Green Goblin', 'Sinister Syndicate', 'This is test text', 'Villain', 5, 5, baseAmbush, baseEscape, baseFight ),
-                new Villain( 'cardBack', 'Green Goblin', 'Sinister Syndicate', 'This is test text', 'Villain', 5, 5, baseAmbush, baseEscape, baseFight ),
-                new Villain( 'cardBack', 'Green Goblin', 'Sinister Syndicate', 'This is test text', 'Villain', 5, 5, baseAmbush, baseEscape, baseFight ),
-                new Villain( 'cardBack', 'Green Goblin', 'Sinister Syndicate', 'This is test text', 'Villain', 5, 5, baseAmbush, baseEscape, baseFight ),
-                new Villain( 'cardBack', 'Green Goblin', 'Sinister Syndicate', 'This is test text', 'Villain', 5, 5, baseAmbush, baseEscape, baseFight ) ]
+var sampleVillainStats = { title: 'Green Goblin',
+                           team: 'Sinister Syndicate',
+                           text: 'Sample Card Text',
+                           baseScore: 5,
+                           baseStrength: 5 }
+
+villainDeck = [ new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ) ]
 
 // Prepare Players
 for( var i = 0; i < playerCount; i++ ){
@@ -27,13 +82,14 @@ for( var i = 0; i < playerCount; i++ ){
 
 /* HELPER FUNCTIONS
 -------------------------------------------------- */
-// 
+// Draws a card from the villain deck and responds accordingly
 function drawFromVillainDeck() {
     if( villainDeck[0].cardType === 'Villain' ) {
         // Appropriately positions the new villain
         switch( city.indexOf(null) ) {
             case -1:
-                alert( 'Villain Escapes' ); // TODO make villains escape
+                city[4].escape();
+                escapedVillains.unshift(city[4].defineDestination(208, 100, 0.25));
             case 4:
                 city[4] = city[3];
             case 3:
@@ -66,7 +122,7 @@ function drawFromVillainDeck() {
 // Prepare HeadQuarters
 for( var i = 0; i < 5; i++ ){
     (function (iCopy) {
-        var x = function(){ headQuarters.push( heroDeck.shift().defineLocation((5*135)+208, 430, 0.35).defineDestination((iCopy*135)+208, 430, 0.35) ) };
+        var x = function(){ headQuarters[iCopy] = heroDeck.shift().defineLocation((5*135)+208, 430, 0.35).defineDestination((iCopy*135)+208, 430, 0.35) };
         addToEventQueue( iCopy*60, x );
     }(i));
 }
@@ -77,14 +133,6 @@ addToEventQueue( 300, drawFromVillainDeck );
 
 /* DRAW METHODS
 -------------------------------------------------- */
-// Draw Headquarters
-var drawHeadQuarters = function( context ){
-    for( var i = 0; i < headQuarters.length; i++ ){
-        if ( headQuarters[i] != null )
-            headQuarters[i].draw( context );
-    }
-}
-
 // Draw City
 var drawCity = function( context ){
     for( var i = 0; i < city.length; i++ ){
@@ -93,10 +141,52 @@ var drawCity = function( context ){
     }
 }
 
+// Draw Deck Counts
+var drawDeckCounts = function( context ){
+    context.fillStyle = "rgb(250, 250, 250)";
+    context.font = "36px Helvetica";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(bystanderDeck.length, 960, 85);
+    //context.fillText(escapedVillains.length, )
+    context.fillText(heroDeck.length, 960, 485);
+    context.fillText(mastermindDeck.length, 40, 305)
+    context.fillText(shieldOfficers, 40, 505)
+    context.fillText(villainDeck.length, 960, 285);
+    context.fillText(wounds, 785, 85);
+}
+
+// Draw Escaped Villains
+var drawEscapedVillains = function( context ){
+    if( escapedVillains.length > 1 && escapedVillains[0].y != escapedVillains[1].y ) {
+        escapedVillains[1].draw( context );
+    }
+    
+    if( escapedVillains.length > 0 ) {
+        escapedVillains[0].draw( context );
+    }
+    
+}
+
+// Draw Headquarters
+var drawHeadQuarters = function( context ){
+    for( var i = 0; i < headQuarters.length; i++ ){
+        if ( headQuarters[i] != null )
+            headQuarters[i].draw( context );
+    }
+}
+
+var drawMastermind = function( context ){
+    mastermind.draw(context);
+}
+
 // Draw Actors
 var drawActors = function( context ) {
     drawHeadQuarters( context );
     drawCity( context );
+    drawEscapedVillains( context );
+    drawMastermind( context );
+    drawDeckCounts( context );
     players[(currentTurn % playerCount)].draw( context );
 }
 
@@ -119,6 +209,14 @@ var updateCity = function( modifier, steps ){
     }
 }
 
+// Update Escaped Villains
+var updateEscapedVillains = function( modifier, steps ){
+    // TODO avoid processing ALL cards at once
+    for( var i = 0; i < escapedVillains.length; i++ ) {
+        escapedVillains[i].update( modifier, steps );
+    }
+}
+
 // Update Actors
 var updateActors = function( modifier, steps ) {
     while( eventQueue.length > 0 && eventQueue[0].step <= steps ) {
@@ -127,5 +225,6 @@ var updateActors = function( modifier, steps ) {
     
     updateHeadQuarters( modifier, steps );
     updateCity( modifier, steps );
+    updateEscapedVillains( modifier, steps );
     players[(currentTurn % playerCount)].update( modifier, steps );
 }

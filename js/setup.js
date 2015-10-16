@@ -2,6 +2,24 @@
 -------------------------------------------------- */
 var canvas = document.createElement("canvas");  // The canvas element
 var ctx = canvas.getContext("2d");              // The 2D context element
+
+// Determine appropriate size
+var winWidth = window.innerWidth,   // The maximum width for the current window
+    winHeight = window.innerHeight, // The maximum height for the current window
+    canvasWidth,                    // the actual width of the canvas
+    canvasHeight,                   // The actual height of the canvas
+    canvasScale;                    // The multipler to be used on all coordinates
+
+// Calculations regarding all canvas size (and scale) variables
+if( winWidth / 16 >= winHeight / 9 ) {
+    canvasHeight = winHeight;
+    canvasWidth = canvasHeight * (16/9);
+} else {
+    canvasWidth = winWidth;
+    canvasHeight = canvasWidth * (9/16);
+}
+canvasScale = canvasWidth / 1080.0;
+
 // Appends the appropriately-sized canvas to the html
 canvas.width = 1080;
 canvas.height = 900;
@@ -19,13 +37,14 @@ var requestAnimationFrame = w.requestAnimationFrame ||          // Standard/Mode
 
 /* GAME VARIABLES
 -------------------------------------------------- */
-var mastermind = null,      // Object of type Mastermind for the current game
-    scheme = null,          // Object of type Scheme for the current game
+var mastermind = null,      // Card of type Mastermind for the current game
+    mastermindDeck = []     // A array of cards in the Mastermind deck
+    scheme = null,          // Card of type Scheme for the current game
     escapedVillains = [],   // An array of cards in the Escaped Villains pile
     knockedOut = [],        // An array of cards in the "KO" pile
     shieldOfficers = 30,    // The number of remaining Shield Officers
     wounds = 30,            // The number of remaining Wounds
-    bystanders = [],        // An array of cards in the Bystanders pile
+    bystanderDeck = [],     // An array of cards in the Bystanders pile
     villainDeck = [],       // An array of cards in the Villains deck
     heroDeck = [],          // An array of cards in the Heroes deck
     city = [null,null,null,null,null],          // An array of cards representing the five positions in the City

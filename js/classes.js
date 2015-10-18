@@ -18,59 +18,81 @@ var Card = Class.create({
         this.destScale = 0;
     },
     // Class Variable(s)
-    baseWidth: 360,
-    baseHeight: 480,
-    movementSpeed: 400.0,
+    baseWidth: 360 * canvasScale,
+    baseHeight: 480 * canvasScale,
+    movementSpeed: 400.0 * canvasScale,
     scaleSpeed: 0.625,
     cardType: "Undefined",
     // Sets the card's location and forgets its destination (returns self)
     defineLocation: function(x, y, scale){
-        this.x = x;
-        this.destX = x;
-        this.y = y;
-        this.destY = y;
+        this.x = x * canvasScale;
+        this.destX = x * canvasScale;
+        this.y = y * canvasScale;
+        this.destY = y * canvasScale;
         this.scale = scale;
         this.destScale = scale;
         return this;
     },
     // Sets the card's destination (returns self)
     defineDestination: function(dx, dy, dscale){
-        this.destX = dx;
-        this.destY = dy;
+        this.destX = dx * canvasScale;
+        this.destY = dy * canvasScale;
         this.destScale = dscale;
         return this;
     },
     // Draws the card
     draw: function(ctx){
-        // Card shape in appropriate color
-        ctx.fillStyle = this.colors[0]; // TODO gradient
-        ctx.fillRect( this.x, this.y, this.baseWidth*this.scale, this.baseHeight*this.scale);
-        // Card content area
-        ctx.fillStyle = 'white';
-        ctx.fillRect( this.x+(10*this.scale), this.y+(10*this.scale), (this.baseWidth-20)*this.scale, (this.baseHeight-20)*this.scale );
+        // Draws the black border
+        ctx.fillStyle = 'Black';
+        ctx.fillRect(this.x-(this.baseWidth/2*this.scale), this.y-(this.baseHeight/2*this.scale), this.baseWidth*this.scale, this.baseHeight*this.scale);
+        
+        // Determines the correct color for the card's background
+        if( this.colors.length < 2 ) {
+            // Monochromatic fill
+            ctx.fillStyle = this.colors[0];
+        } else {
+            // Gradient fill
+            var gradient = ctx.createLinearGradient(0, this.y-(this.baseHeight/2*this.scale), 0, this.y+(this.baseHeight/2*this.scale));
+            for( var i = 0; i < this.colors.length; i++ ){
+                gradient.addColorStop(i, this.colors[i]);
+            }
+            ctx.fillStyle=gradient;
+        }
+        
+        // Draws the card's background
+        ctx.fillRect(this.x-(this.baseWidth/2*this.scale*0.95), this.y-(this.baseHeight/2*this.scale*0.96), this.baseWidth*this.scale*0.95, this.baseHeight*this.scale*0.96);
+        
         // Card title
-        ctx.fillStyle = 'black';
+        ctx.fillStyle = 'White';
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
-        ctx.font = 24*this.scale + "px Helvetica";
-        ctx.fillText( this.title, this.x+(this.baseWidth*this.scale/2), this.y+(30*this.scale), (this.baseWidth-20)*this.scale );
+        ctx.font = 30*this.scale*canvasScale + "px Helvetica";
+        ctx.fillText( this.title, this.x, this.y-(this.baseHeight/2*this.scale*0.88), (this.baseWidth*this.scale*0.85) );
+        
         // Card subtitle
-        ctx.font = 18*this.scale + "px Helvitca";
-        ctx.fillText( this.subtitle, this.x+(this.baseWidth*this.scale/2), this.y+(48*this.scale), (this.baseWidth-20)*this.scale );
+        ctx.font = 22*this.scale*canvasScale + "px Helvitca";
+        ctx.fillText( this.subtitle, this.x, this.y-(this.baseHeight/2*this.scale*0.78), (this.baseWidth*this.scale*0.85) );
+        
         // Card image (if ready)
         if (resourceReady(this.image)) {
-            ctx.drawImage(resourceImage(this.image), this.x+(15*this.scale), this.y+(60*this.scale), (this.baseWidth-30)*this.scale, 200*this.scale );
+            ctx.drawImage(resourceImage(this.image), this.x-(this.baseWidth/2*this.scale*0.85), this.y-(this.baseHeight/2*this.scale*0.7), this.baseWidth*this.scale*0.85, this.baseHeight*this.scale*0.425 );
         }
+        
+        // Text  area
+        ctx.fillStyle = 'White';
+        ctx.fillRect(this.x-(this.baseWidth/2*this.scale*0.85), this.y+(this.baseHeight/2*this.scale*0.2), this.baseWidth*this.scale*0.85, this.baseHeight*this.scale*0.35);
+        
         // Card text TODO support multi-line
+        ctx.fillStyle = 'Black';
         ctx.textBaseline = 'top';
         ctx.textAlign = 'left';
-        ctx.fillText( this.text, this.x+(60*this.scale), this.y+(270*this.scale), (this.baseWidth-70)*this.scale );
+        ctx.fillText( this.text, this.x-(this.baseWidth/2*this.scale*0.65), this.y+(this.baseHeight/2*this.scale*0.2), this.baseWidth*this.scale*0.75 );
     },
     // Updates the card (to be rendered accordingly)
     update: function(modifier,steps){
         // Updates scale
         if( this.scale != this.destScale ) {
-            if( Math.abs(this.destScale - this.scale) < this.scale+(this.scaleSpeed * modifier) ){
+            if( Math.abs(this.destScale - this.scale) < (this.scaleSpeed * modifier)){
                 this.scale = this.destScale;
             } else {
                 if( this.scale < this.destScale ){
@@ -88,23 +110,23 @@ var Card = Class.create({
             var xSpeed = ( distY == 0 ? 1 : (distX/distY) ) * this.movementSpeed * modifier;
             var ySpeed = ( distX == 0 ? 1 : (distY/distX) ) * this.movementSpeed * modifier;
             // Updates X Position
-            if( distX < xSpeed ) {
-                this.x = parseInt( this.destX );
+            if( distX <= xSpeed ) {
+                this.x = this.destX;
             } else {
                 if( this.x < this.destX ){
-                    this.x = parseInt( this.x + xSpeed );
+                    this.x = this.x + xSpeed;
                 } else {
-                    this.x = parseInt( this.x - xSpeed );
+                    this.x = this.x - xSpeed;
                 }
             }
             // Updates Y Position
-            if( distY < ySpeed ) {
-                this.y = parseInt( this.destY );
+            if( distY <= ySpeed ) {
+                this.y = this.destY;
             } else {
                 if( this.y < this.destY ){
-                    this.y = parseInt( this.y + ySpeed );
+                    this.y = this.y + ySpeed;
                 } else {
-                    this.y = parseInt( this.y - ySpeed );
+                    this.y = this.y - ySpeed;
                 }
             }
         }

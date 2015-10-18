@@ -21,7 +21,7 @@ var update = function(step) {
 -------------------------------------------------- */
 var draw = function() {
     if (resourceReady('background')) {
-        ctx.drawImage(resourceImage('background'), 0, 0, 1080, 640);
+        ctx.drawImage(resourceImage('background'), 0, 0, canvasWidth, canvasHeight);
     }
     
     drawActors( ctx );

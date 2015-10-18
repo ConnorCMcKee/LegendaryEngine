@@ -36,12 +36,14 @@ heroDeck = [ new Hero( sampleHeroStats ),
              new Hero( sampleHeroStats ),
              new Hero( sampleHeroStats ) ]
 
+heroDeck[0].colors = ['Red','Green'];
+
 // Prepare Mastermind (and Deck)
 mastermind = new Mastermind( { title: 'Magneto',
                                text: 'A wizard is never late...',
                                alwaysLeads: 'Brotherhood',
                                baseScore: 5,
-                               baseStrength: 5 } ).defineLocation( 60, 250, 0.35 );
+                               baseStrength: 5 } ).defineLocation( 120, 315, 0.3 );
 
 var sampleMastermindTacticStats = { title: 'First Tactic!',
                                     team: mastermind.title,
@@ -89,7 +91,7 @@ function drawFromVillainDeck() {
         switch( city.indexOf(null) ) {
             case -1:
                 city[4].escape();
-                escapedVillains.unshift(city[4].defineDestination(208, 100, 0.25));
+                escapedVillains.unshift(city[4].defineDestination(270, 130, 0.3));
             case 4:
                 city[4] = city[3];
             case 3:
@@ -99,15 +101,15 @@ function drawFromVillainDeck() {
             case 1:
                 city[1] = city[0];
             case 0:
-                city[0] = villainDeck.shift().defineLocation(883, 230, 0.35);
+                city[0] = villainDeck.shift().defineLocation(945, 300, 0.3);
                 // TODO villain ambush
                 break;
         }
         // Updates the destination(s) of villains
         for( var i = 0; i < 5; i++ ){
-            var xPos = ((4-i)*135)+208;
+            var xPos = ((4-i)*135)+270;
             if( city[i] != null && city[i].x != xPos ) {
-                city[i].defineDestination(xPos, 230, 0.35);
+                city[i].defineDestination(xPos, 300, 0.3);
             }
         }
     } else {
@@ -122,7 +124,7 @@ function drawFromVillainDeck() {
 // Prepare HeadQuarters
 for( var i = 0; i < 5; i++ ){
     (function (iCopy) {
-        var x = function(){ headQuarters[iCopy] = heroDeck.shift().defineLocation((5*135)+208, 430, 0.35).defineDestination((iCopy*135)+208, 430, 0.35) };
+        var x = function(){ headQuarters[iCopy] = heroDeck.shift().defineLocation((5*135)+270, 510, 0.3).defineDestination((iCopy*135)+270, 510, 0.3) };
         addToEventQueue( iCopy*60, x );
     }(i));
 }

@@ -4,26 +4,37 @@ var canvas = document.createElement("canvas");  // The canvas element
 var ctx = canvas.getContext("2d");              // The 2D context element
 
 // Determine appropriate size
-var winWidth = window.innerWidth,   // The maximum width for the current window
-    winHeight = window.innerHeight, // The maximum height for the current window
-    canvasWidth,                    // the actual width of the canvas
-    canvasHeight,                   // The actual height of the canvas
-    canvasScale;                    // The multipler to be used on all coordinates
+var winWidth,       // The maximum width for the current window
+    winHeight,      // The maximum height for the current window
+    canvasWidth,    // the actual width of the canvas
+    canvasHeight,   // The actual height of the canvas
+    canvasScale;    // The multipler to be used on all coordinates
 
-// Calculations regarding all canvas size (and scale) variables
-if( winWidth / 16 >= winHeight / 9 ) {
-    canvasHeight = winHeight;
-    canvasWidth = canvasHeight * (16/9);
-} else {
-    canvasWidth = winWidth;
-    canvasHeight = canvasWidth * (9/16);
+var scaleCanvas = function(){
+    winWidth = window.innerWidth
+    winHeight = window.innerHeight
+    
+    // Calculations regarding all canvas size (and scale) variables
+    if( winWidth / 16 >= winHeight / 9 ) {
+        canvasHeight = winHeight;
+        canvasWidth = canvasHeight * (16/9);
+    } else {
+        canvasWidth = winWidth;
+        canvasHeight = canvasWidth * (9/16);
+    }
+    canvasScale = canvasWidth / 1080.0;
+
+    // Applies the appropriate values to the canvas
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
 }
-canvasScale = canvasWidth / 1080.0;
+scaleCanvas();
 
-// Appends the appropriately-sized canvas to the html
-canvas.width = 1080;
-canvas.height = 900;
+// Appends the canvas to the body
 document.body.appendChild(canvas);
+
+// Adds the scaleCanvas resize event TODO determine if it's worth the performance cost to add resize event
+// window.addEventListener("resize", scaleCanvas);
 
 
 /* WINDOW SETUP

@@ -2,7 +2,7 @@
 -------------------------------------------------- */
 var Card = Class.create({
     // Constructor
-    initialize: function(image, title, subtitle, text){
+    initialize: function(image, title, subtitle, text, faceUp){
         this.image = image || 'cardBack';
         this.title = title || 'NO NAME';
         this.subtitle = subtitle || '';
@@ -16,12 +16,14 @@ var Card = Class.create({
         this.destX = 0;
         this.destY = 0;
         this.destScale = 0;
+        // Boolean for the card's side-up
+        this.faceUp = faceUp || true;
     },
     // Class Variable(s)
     baseWidth: 360 * canvasScale,
     baseHeight: 480 * canvasScale,
     movementSpeed: 400.0 * canvasScale,
-    scaleSpeed: 0.625,
+    scaleSpeed: 1.625,
     cardType: "Undefined",
     // Sets the card's location and forgets its destination (returns self)
     defineLocation: function(x, y, scale){
@@ -40,53 +42,84 @@ var Card = Class.create({
         this.destScale = dscale;
         return this;
     },
-    // Draws the card
-    draw: function(ctx){
-        // Draws the black border
-        ctx.fillStyle = 'Black';
-        ctx.fillRect(this.x-(this.baseWidth/2*this.scale), this.y-(this.baseHeight/2*this.scale), this.baseWidth*this.scale, this.baseHeight*this.scale);
-        
-        // Determines the correct color for the card's background
-        if( this.colors.length < 2 ) {
-            // Monochromatic fill
-            ctx.fillStyle = this.colors[0];
+    // Flips the card
+    flip: function(){
+        this.faceUp = !this.faceUp;
+        return this;
+    },
+    // Checks if the passed cartesian coordinate exists with this card
+    containsPoint: function(x, y){
+        if( x >= this.x-(this.baseWidth/2*this.scale)
+                && x <= this.x+(this.baseWidth/2*this.scale)
+                && y >= this.y-(this.baseHeight/2*this.scale)
+                && y <= this.y+(this.baseHeight/2*this.scale) ) {
+            return true;
         } else {
-            // Gradient fill
-            var gradient = ctx.createLinearGradient(0, this.y-(this.baseHeight/2*this.scale), 0, this.y+(this.baseHeight/2*this.scale));
-            for( var i = 0; i < this.colors.length; i++ ){
-                gradient.addColorStop(i, this.colors[i]);
+            return false;
+        }
+    },
+    // Draws the card
+    draw: function(ctx, force){
+        // Waits to draw the card if it's selected
+        if( this != selectedCard || force ) {
+            // Draws the black border
+            ctx.fillStyle = 'Black';
+            ctx.fillRect(this.x-(this.baseWidth/2*this.scale), this.y-(this.baseHeight/2*this.scale), this.baseWidth*this.scale, this.baseHeight*this.scale);
+
+            // If the card is being rendered face UP
+            if( this.faceUp ){
+
+                // Determines the correct color for the card's background
+                if( this.colors.length < 2 ) {
+                    // Monochromatic fill
+                    ctx.fillStyle = this.colors[0];
+                } else {
+                    // Gradient fill
+                    var gradient = ctx.createLinearGradient(0, this.y-(this.baseHeight/2*this.scale), 0, this.y+(this.baseHeight/2*this.scale));
+                    for( var i = 0; i < this.colors.length; i++ ){
+                        gradient.addColorStop(i, this.colors[i]);
+                    }
+                    ctx.fillStyle=gradient;
+                }
+
+                // Draws the card's background
+                ctx.fillRect(this.x-(this.baseWidth/2*this.scale*0.95), this.y-(this.baseHeight/2*this.scale*0.96), this.baseWidth*this.scale*0.95, this.baseHeight*this.scale*0.96);
+
+                // Card title
+                ctx.fillStyle = 'White';
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center';
+                ctx.font = 30*this.scale*canvasScale + "px Helvetica";
+                ctx.fillText( this.title, this.x, this.y-(this.baseHeight/2*this.scale*0.88), (this.baseWidth*this.scale*0.85) );
+
+                // Card subtitle
+                ctx.font = 22*this.scale*canvasScale + "px Helvitca";
+                ctx.fillText( this.subtitle, this.x, this.y-(this.baseHeight/2*this.scale*0.78), (this.baseWidth*this.scale*0.85) );
+
+                // Card image (if ready)
+                if (resourceReady(this.image)) {
+                    ctx.drawImage(resourceImage(this.image), this.x-(this.baseWidth/2*this.scale*0.85), this.y-(this.baseHeight/2*this.scale*0.7), this.baseWidth*this.scale*0.85, this.baseHeight*this.scale*0.425 );
+                }
+
+                // Text  area
+                ctx.fillStyle = 'White';
+                ctx.fillRect(this.x-(this.baseWidth/2*this.scale*0.85), this.y+(this.baseHeight/2*this.scale*0.2), this.baseWidth*this.scale*0.85, this.baseHeight*this.scale*0.35);
+
+                // Card text TODO support multi-line
+                ctx.fillStyle = 'Black';
+                ctx.textBaseline = 'top';
+                ctx.textAlign = 'left';
+                ctx.fillText( this.text, this.x-(this.baseWidth/2*this.scale*0.65), this.y+(this.baseHeight/2*this.scale*0.2), this.baseWidth*this.scale*0.75 );
+
+            // If the card is being rendered face DOWN
+            } else {
+                // Draws the card's background
+                if (resourceReady(this.image)) {
+                    ctx.drawImage(resourceImage('cardBack'), this.x-(this.baseWidth/2*this.scale*0.95), this.y-(this.baseHeight/2*this.scale*0.96), this.baseWidth*this.scale*0.95, this.baseHeight*this.scale*0.96 );
+                }
             }
-            ctx.fillStyle=gradient;
         }
-        
-        // Draws the card's background
-        ctx.fillRect(this.x-(this.baseWidth/2*this.scale*0.95), this.y-(this.baseHeight/2*this.scale*0.96), this.baseWidth*this.scale*0.95, this.baseHeight*this.scale*0.96);
-        
-        // Card title
-        ctx.fillStyle = 'White';
-        ctx.textBaseline = 'middle';
-        ctx.textAlign = 'center';
-        ctx.font = 30*this.scale*canvasScale + "px Helvetica";
-        ctx.fillText( this.title, this.x, this.y-(this.baseHeight/2*this.scale*0.88), (this.baseWidth*this.scale*0.85) );
-        
-        // Card subtitle
-        ctx.font = 22*this.scale*canvasScale + "px Helvitca";
-        ctx.fillText( this.subtitle, this.x, this.y-(this.baseHeight/2*this.scale*0.78), (this.baseWidth*this.scale*0.85) );
-        
-        // Card image (if ready)
-        if (resourceReady(this.image)) {
-            ctx.drawImage(resourceImage(this.image), this.x-(this.baseWidth/2*this.scale*0.85), this.y-(this.baseHeight/2*this.scale*0.7), this.baseWidth*this.scale*0.85, this.baseHeight*this.scale*0.425 );
-        }
-        
-        // Text  area
-        ctx.fillStyle = 'White';
-        ctx.fillRect(this.x-(this.baseWidth/2*this.scale*0.85), this.y+(this.baseHeight/2*this.scale*0.2), this.baseWidth*this.scale*0.85, this.baseHeight*this.scale*0.35);
-        
-        // Card text TODO support multi-line
-        ctx.fillStyle = 'Black';
-        ctx.textBaseline = 'top';
-        ctx.textAlign = 'left';
-        ctx.fillText( this.text, this.x-(this.baseWidth/2*this.scale*0.65), this.y+(this.baseHeight/2*this.scale*0.2), this.baseWidth*this.scale*0.75 );
+            
     },
     // Updates the card (to be rendered accordingly)
     update: function(modifier,steps){
@@ -138,7 +171,7 @@ var Card = Class.create({
 -------------------------------------------------- */
 var Bystander = Class.create(Card, {
     initialize: function($super, options ){
-        $super( options.image, options.title, options.subtitle, options.text );
+        $super( options.image, options.title, options.subtitle, options.text, options.faceUp );
         this.baseScore = options.baseScore || 1;
         this.getScore = options.getScore || baseGetScore;
         this.customRescue = options.customRescue || baseRescue;
@@ -150,13 +183,11 @@ var Bystander = Class.create(Card, {
 });
 
 
-// TODO rework subtitles
-
 /* HERO
 -------------------------------------------------- */
 var Hero = Class.create(Card, {
     initialize: function($super, options ){
-        $super( options.image, options.title, options.subtitle, options.text );
+        $super( options.image, options.title, options.subtitle, options.text, options.faceUp );
         this.team = options.team;
         this.colors = options.colors || ['gray'];
         this.baseCost = options.baseCost || 0;
@@ -187,7 +218,7 @@ var Hero = Class.create(Card, {
 -------------------------------------------------- */
 var Mastermind = Class.create(Card, {
    initialize: function($super, options ){
-        $super( options.image, options.title, 'Mastermind', options.text );
+        $super( options.image, options.title, 'Mastermind', options.text, options.faceUp );
         this.baseScore = options.baseScore || 1;
         this.baseStrength = options.baseStrength || 1;
         this.getScore = options.getScore || baseGetScore;
@@ -211,7 +242,7 @@ var Villain = Class.create(Card, {
     initialize: function($super, options ){
         this.team = options.team
         this.subtype = options.subtype || 'Villain';
-        $super( options.image, options.title, this.subtype + ' - ' + this.team, options.text );
+        $super( options.image, options.title, this.subtype + ' - ' + this.team, options.text, options.faceUp );
         this.baseScore = options.baseScore || 1;
         this.baseStrength = options.baseStrength || 1;
         this.getScore = options.getScore || baseGetScore;

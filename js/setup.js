@@ -62,8 +62,9 @@ var mastermind = null,      // Card of type Mastermind for the current game
     headquarters = [null,null,null,null,null],  // An array of cards representing the five positions in the "HQ"
     playerCount = 1,        // The number of players in the current game
     players = [],           // An array of Player objects for the current game
-    selectedCard = null;    // The currently selected card
-    selectedCardLocation = {};  // The true location (x, y, and scale) of the selected card
+    selectedCard = null,    // The currently selected card
+    selectedCardLocation = {},  // The true location (x, y, and scale) of the selected card
+    controls = [],          // An array of all controls (buttons) for the game
     eventQueue = [];        // A queau of events sorted by step number
     
 
@@ -147,7 +148,7 @@ function selectCard( card ) {
     selectedCardLocation = { x: card.destX / canvasScale,
                              y: card.destY / canvasScale,
                              scale: card.destScale };
-    card.defineDestination( (canvasWidth / 2), (canvasHeight / 2), 1.0 );
+    card.defineDestination( 540, 300, 1.0 );
     selectedCard = card;
     return selectedCard;
 }
@@ -170,6 +171,14 @@ var drawCity = function( context ){
     for( var i = 0; i < city.length; i++ ){
         if( city[i] != null )
             city[i].draw( context );
+    }
+}
+
+// Draw controls
+var drawControls = function( context ){
+    for( var i = 0; i < controls.length; i++ ){
+        if( controls[i].visible )
+            controls[i].draw( context );
     }
 }
 
@@ -230,26 +239,28 @@ var drawActors = function( context ) {
     drawDeckCounts( context );
     players[(currentTurn % playerCount)].draw( context );
     
-    // MUST be last
+    // MUST be last card drawn
     drawSelected( context );
+    
+    // Draw controls
+    drawControls( context );
 }
 
 
 /* UPDATE FUNCTIONS
 -------------------------------------------------- */
-// Update Headquarters
-var updateHeadquarters = function( modifier, steps ){
-    for( var i = 0; i < headquarters.length; i++ ){
-        if ( headquarters[i] != null )
-            headquarters[i].update( modifier, steps );
-    }
-}
-
 // Update City
 var updateCity = function( modifier, steps ){
     for( var i = 0; i < city.length; i++ ){
         if( city[i] != null )
             city[i].update( modifier, steps );
+    }
+}
+
+// Update Controls
+var updateControls = function( modifier, steps ){
+    for( var i = 0; i < controls.length; i++ ){
+        controls[i].update( modifier, steps );
     }
 }
 
@@ -261,14 +272,35 @@ var updateEscapedVillains = function( modifier, steps ){
     }
 }
 
+
+// Update Headquarters
+var updateHeadquarters = function( modifier, steps ){
+    for( var i = 0; i < headquarters.length; i++ ){
+        if ( headquarters[i] != null )
+            headquarters[i].update( modifier, steps );
+    }
+}
+
+
+// Update Mastermind
+var updateMastermind = function( modifier, steps ){
+    mastermind.update( modifier, steps );
+}
+
 // Update Actors
 var updateActors = function( modifier, steps ) {
+    // Performas appropriate eventQueue actions
     while( eventQueue.length > 0 && eventQueue[0].step <= steps ) {
         eventQueue.shift().action();
     }
     
-    updateHeadquarters( modifier, steps );
+    // Updates cards
     updateCity( modifier, steps );
     updateEscapedVillains( modifier, steps );
+    updateHeadquarters( modifier, steps );
+    updateMastermind( modifier, steps );
     players[(currentTurn % playerCount)].update( modifier, steps );
+    
+    // Updates controls
+    updateControls( modifier, steps );
 }

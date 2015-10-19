@@ -31,6 +31,9 @@ function canvasClick(event)
             }
         }
         
+        // Adds the mastermind to the array
+        visibleCards.push( mastermind );
+        
         // Iterate through the array, looking for a card containing the mouseclick
         for( var i = 0; i < visibleCards.length; i++ ){
             if( visibleCards[i].containsPoint(event.x, event.y) ) {

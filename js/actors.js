@@ -1,4 +1,4 @@
-/* ACTOR VARIABLES
+/* CARD ACTORS
 -------------------------------------------------- */
 // Prepare Bystander Deck
 var sampleBystanderStats = { title: 'Bystander',
@@ -81,6 +81,44 @@ for( var i = 0; i < playerCount; i++ ){
     players[i] = new Player( i );
     players[i].drawUp();
 }
+
+
+/* CONTROL ACTORS
+-------------------------------------------------- */
+// Play Selected Card from Hand button
+controls.push( new Control({
+    text: 'Play Card',
+    width: 100,
+    height: 70,
+    x: 800,
+    y: 300,
+    visible: false,
+    showCondition: function(){
+        if( selectedCard != null && players[(currentTurn % playerCount)].hand.indexOf( selectedCard ) >= 0 && selectedCard.atLocation(540,300,1) ){
+            return true;
+        } else {
+            return false;
+        }
+    }
+}));
+
+// Play Selected Card from Hand button
+controls.push( new Control({
+    text: 'Show Hand',
+    width: 100,
+    height: 70,
+    x: 540,
+    y: 40,
+    visible: false,
+    showCondition: function(){
+        if( selectedCard != null && players[(currentTurn % playerCount)].hand.indexOf( selectedCard ) >= 0 && selectedCard.atLocation(540,300,1) ){
+            return true;
+        } else {
+            return false;
+        }
+    }
+}));
+
 
 
 /* QUEUED EVENTS VARIABLES

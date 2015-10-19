@@ -22,9 +22,17 @@ var Card = Class.create({
     // Class Variable(s)
     baseWidth: 360 * canvasScale,
     baseHeight: 480 * canvasScale,
-    movementSpeed: 400.0 * canvasScale,
-    scaleSpeed: 1.625,
+    movementSpeed: 700.0 * canvasScale,
+    scaleSpeed: 1.5,
     cardType: "Undefined",
+    // Determines if the card is at a specific location
+    atLocation: function( x, y, scale ){
+        if( this.x == x*canvasScale && this.y == y*canvasScale && this.scale == scale ) {
+            return true;
+        } else {
+            return false;
+        }
+    },
     // Sets the card's location and forgets its destination (returns self)
     defineLocation: function(x, y, scale){
         this.x = x * canvasScale;
@@ -140,8 +148,8 @@ var Card = Class.create({
             // Variables for determining new position
             var distX = Math.abs( this.destX - this.x );
             var distY = Math.abs( this.destY - this.y );
-            var xSpeed = ( distY == 0 ? 1 : (distX/distY) ) * this.movementSpeed * modifier;
-            var ySpeed = ( distX == 0 ? 1 : (distY/distX) ) * this.movementSpeed * modifier;
+            var xSpeed = ( distY == 0 ? 1 : (distX/(distY+distX))) * this.movementSpeed * modifier;
+            var ySpeed = ( distX == 0 ? 1 : (distY/(distY+distX))) * this.movementSpeed * modifier;
             // Updates X Position
             if( distX <= xSpeed ) {
                 this.x = this.destX;
@@ -276,30 +284,48 @@ var Player = Class.create({
     initialize: function(playerNumber){
         this.playerNumber = playerNumber;
         this.hand = [];
+        this.handOnScreen = true;
         // Builds the starting deck
-        var trooper = new Hero( { title: 'Shield Trooper',
-                                  subtitle: 'Shield',
-                                  team: 'Shield',
-                                  baseAttack: 1 } );
-        var agent = new Hero( { title: 'Shield Agent',
-                                subtitle: 'Shield',
-                                team: 'Shield',
-                                baseResource: 1 } );
-        this.drawDeck = shuffle( Array.apply(null, Array(4)).map(function(){return trooper}).concat( Array.apply(null, Array(8)).map(function(){return agent}) ) );
+        var trooperStats = {  title: 'Shield Trooper',
+                              subtitle: 'Shield',
+                              team: 'Shield',
+                              baseAttack: 1 };
+        var agentStats = {  title: 'Shield Agent',
+                            subtitle: 'Shield',
+                            team: 'Shield',
+                            baseResource: 1 };
+        this.drawDeck = shuffle( Array.apply(null, Array(4)).map(function(){return new Hero(trooperStats)}).concat( Array.apply(null, Array(8)).map(function(){return new Hero(agentStats)}) ) );
         this.discardPile = [];
     },
     drawCard: function(){
+        // Draws card
         if( this.drawDeck.length > 0 ){
-            this.hand.push( this.drawDeck.shift() );
+            this.hand.push( this.drawDeck.shift().defineLocation(540,700,0.35) );
         } else {
             this.drawDeck = shuffle( this.discardPile );
             this.discardPile = [];
             this.hand.push( this.drawCard() );
         }
+        
+        // Arranges Hand
+        this.arrangeHand( this.handOnScreen );
     },
     drawUp: function(){
         while( this.hand.length < 6 ) {
             this.drawCard();
+        }
+    },
+    arrangeHand: function( showHand ){
+        this.handOnScreen = showHand;
+        // Determines the cards' destY
+        var startingDestY = showHand ? 300 : 700;
+        // Arranges cards in hand
+        for( var i = 0; i < this.hand.length; i++ ){
+            if( showHand ) {
+                this.hand[i].defineDestination( i*(1040/this.hand.length)+(1040/this.hand.length)/2, 300, 0.4 )
+            } else {
+                this.hand[i].defineDestination( 540, 700, 0.4 )
+            }
         }
     },
     playFromHand(){
@@ -322,3 +348,47 @@ var Player = Class.create({
         } 
     }
 });
+
+
+/* CONTROL
+-------------------------------------------------- */
+var Control = Class.create({
+    initialize: function(options){
+        // Display options
+        this.text = options.text;
+        this.color = options.color || 'Green';
+        this.width = ( options.width || 200 ) * canvasScale;
+        this.height = ( options.height || 200 ) * canvasScale;
+        this.x = options.x * canvasScale || 0;
+        this.y = options.y * canvasScale || 0;
+        this.enabled = options.disabled || true;
+        this.visible = options.visible || true;
+        // OnClick Action
+        this.customClickAction = options.customClickAction || function(){ alert('You clicked me!'); };
+        // Show & Enable Condition
+        this.showCondition = options.showCondition || function(){ return true; };
+        this.enableCondition = options.enableCondition || function(){ return true; };
+    },
+    clickAction: function(){
+        this.customClickAction();
+    },
+    draw: function( ctx ){
+        if( this.visible ) {
+            ctx.fillStyle = this.color;
+            ctx.fillRect(this.x-(this.width/2), this.y-(this.height/2), this.width, this.height);
+        }
+    },
+    update: function( modifier, steps ){
+        if( this.showCondition() ) {
+            this.visible = true;
+            if( this.enableCondition() ) {
+                this.enabled = true;
+            } else {
+                this.enabled = false;
+            }
+        } else {
+            this.visible = false;
+            this.enabled = false;
+        }
+    }
+})

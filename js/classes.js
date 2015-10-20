@@ -205,6 +205,13 @@ var Hero = Class.create(Card, {
         this.getCost = options.getCost || baseGetCost;
         this.getAttack = options.customGetAttack || baseGetAttack;
         this.getResource = options.customGetResource || baseGetResource;
+        // Default position
+        this.x = 1012.5 * canvasScale;
+        this.destX = 1012.5 * canvasScale;
+        this.y = 332 * canvasScale;
+        this.destY = 332 * canvasScale;
+        this.scale = 0.3;
+        this.destScale = 0.3;
     },
     cardType: 'Hero',
     attack: function() {
@@ -233,13 +240,42 @@ var Mastermind = Class.create(Card, {
         this.getStrength = options.getStrength || baseGetStrength;
         this.alwaysLeads = options.alwaysLeads;
         this.customMasterStrike = options.customMasterStrike || baseMasterStrike;
+        // Default position
+        this.x = 202.5 * canvasScale;
+        this.destX = 202.5 * canvasScale;
+        this.y = 140 * canvasScale;
+        this.destY = 140 * canvasScale;
+        this.scale = 0.3;
+        this.destScale = 0.3;
     },
     cardType: 'Mastermind',
+    masterStrike: function() {
+        this.customMasterStrike();
+    },
     score: function() {
         return this.getScore( this );
     },
     strength: function() {
         return this.getStrength( this );
+    }
+});
+
+
+/* SCHEME
+-------------------------------------------------- */
+var Scheme = Class.create(Card, {
+   initialize: function($super, options ){
+        $super( 'cardBack', options.title, 'Scheme', options.text, false );
+        this.schemeTwistCount = options.schemeTwistCount || 6;
+        this.schemeTwistEffects = options.schemeTwistEffects || Array.apply(null, Array(this.schemeTwistCount)).map( function(){return baseSchemeTwistEffect});
+        this.customWinCondition = options.customWinCondition || baseWinCondition;
+    },
+    cardType: 'Scheme',
+    schemeTwist: function() {
+        this.schemeTwistEffects[schemeTwistsPlayed]();
+    },
+    winCondition: function() {
+        return customWinCondition();
     }
 });
 
@@ -258,6 +294,13 @@ var Villain = Class.create(Card, {
         this.customAmbush = options.customAmbush || baseAmbush;
         this.customEscape = options.customEscape || baseEscape;
         this.customFight = options.customFight || baseFight;
+        // Default position
+        this.x = 1012.5 * canvasScale;
+        this.destX = 1012.5 * canvasScale;
+        this.y = 140 * canvasScale;
+        this.destY = 140 * canvasScale;
+        this.scale = 0.3;
+        this.destScale = 0.3;
     },
     cardType: 'Villain',
     ambush: function() {
@@ -274,6 +317,20 @@ var Villain = Class.create(Card, {
     },
     strength: function() {
         return this.getStrength( this );
+    }
+});
+
+
+/* WOUND
+-------------------------------------------------- */
+var Wound = Class.create(Card, {
+    initialize: function($super){
+        $super( 'cardBack', 'WOUND', '', "This is a wound's text", false );
+        this.colors = ['red','black'];
+    },
+    cardType: 'Wound',
+    play: function() {
+        alert( 'You just played a Wound!' );
     }
 });
 
@@ -320,7 +377,7 @@ var Player = Class.create({
         // Arranges cards in hand
         for( var i = 0; i < this.hand.length; i++ ){
             if( showHand ) {
-                this.hand[i].defineDestination( i*(1040/this.hand.length)+(1040/this.hand.length)/2, 300, 0.4 )
+                this.hand[i].defineDestination( i*(1080/this.hand.length)+(1080/this.hand.length)/2, 300, 0.4 )
             } else {
                 this.hand[i].defineDestination( 540, 730, 0.4 )
             }

@@ -26,7 +26,8 @@ function canvasClick(event)
                         .concat( headquarters.filter( function(n){ return n != null }) )
                         .concat( city.filter( function(n){ return n!= null }) )
                         .concat( [mastermind,
-                                  shieldOfficersDeck[0]] );
+                                  shieldOfficersDeck[0],
+                                  woundDeck[0]] );
         
         // Iterate through the array, looking for a card containing the mouseclick
         for( var i = 0; i < visibleCards.length; i++ ){

@@ -1,12 +1,3 @@
-/* PLAY FUNCTIONS
--------------------------------------------------- */
-var basePlay = function( card ){
-    card.customAttack( card );
-    card.customResource( card );
-    return;
-}
-
-
 /* GET ATTACK FUNCTIONS
 -------------------------------------------------- */
 var baseGetAttack = function( card ){
@@ -65,10 +56,19 @@ var baseFight = function( card ){
 }
 
 
-/* RESCUE FUNCTIONS
+/* MASTER STRIKE FUNCTIONS
 -------------------------------------------------- */
-var baseMasterStrike = function( card ){
-    alert( "You've been... Masterstruck! (by " + card.title + ")" )
+var baseMasterStrike = function(){
+    alert( "You've been... Masterstruck! (by " + mastermind.title + ")" )
+}
+
+
+/* PLAY FUNCTIONS
+-------------------------------------------------- */
+var basePlay = function( card ){
+    card.customAttack( card );
+    card.customResource( card );
+    return;
 }
 
 
@@ -77,4 +77,23 @@ var baseMasterStrike = function( card ){
 var baseRescue = function( card ){
     alert( card.title + ' was Rescued!' );
     return;
+}
+
+
+/* SCHEME TWIST FUNCTIONS
+-------------------------------------------------- */
+var baseSchemeTwistEffect = function(){
+    alert( 'The scheme has twisted!' );
+    return;
+}
+
+
+/* WIN CONDITION FUNCTIONS
+-------------------------------------------------- */
+var baseWinCondition = function(){
+    if( scheme.schemeTwistCount <= schemeTwistsPlayed ) {
+        return true;
+    } else {
+        return false;
+    }
 }

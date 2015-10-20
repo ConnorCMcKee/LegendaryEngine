@@ -7,16 +7,16 @@ var sampleBystanderStats = { title: 'Bystander',
                              faceDown: true,
                              faceUp: false };
 
-bystanderDeck = [ new Bystander( sampleBystanderStats ).defineLocation(945, 90, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(945, 90, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(945, 90, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(945, 90, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(945, 90, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(945, 90, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(945, 90, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(945, 90, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(945, 90, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(945, 90, 0.3) ];
+bystanderDeck = [ new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
+                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
+                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
+                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
+                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
+                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
+                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
+                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
+                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
+                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3) ];
 
 // Prepare Hero Deck
 var sampleHeroStats = { title: 'Silent Sniper',
@@ -28,16 +28,16 @@ var sampleHeroStats = { title: 'Silent Sniper',
                         baseCost: 7,
                         baseAttack: 3 };
 
-heroDeck = [ new Hero( sampleHeroStats ).defineLocation(945, 510, 0.3),
-             new Hero( sampleHeroStats ).defineLocation(945, 510, 0.3),
-             new Hero( sampleHeroStats ).defineLocation(945, 510, 0.3),
-             new Hero( sampleHeroStats ).defineLocation(945, 510, 0.3),
-             new Hero( sampleHeroStats ).defineLocation(945, 510, 0.3),
-             new Hero( sampleHeroStats ).defineLocation(945, 510, 0.3),
-             new Hero( sampleHeroStats ).defineLocation(945, 510, 0.3),
-             new Hero( sampleHeroStats ).defineLocation(945, 510, 0.3),
-             new Hero( sampleHeroStats ).defineLocation(945, 510, 0.3),
-             new Hero( sampleHeroStats ).defineLocation(945, 510, 0.3) ];
+heroDeck = [ new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ),
+             new Hero( sampleHeroStats ) ];
 
 heroDeck[0].colors = ['Red','Green']; // This is simply to test gradients on cards
 
@@ -46,7 +46,7 @@ mastermind = new Mastermind( { title: 'Magneto',
                                text: 'A wizard is never late...',
                                alwaysLeads: 'Brotherhood',
                                baseScore: 5,
-                               baseStrength: 5 } ).defineLocation( 120, 315, 0.3 );
+                               baseStrength: 5 } );
 
 var sampleMastermindTacticStats = { title: 'First Tactic!',
                                     team: mastermind.title,
@@ -56,10 +56,10 @@ var sampleMastermindTacticStats = { title: 'First Tactic!',
                                     baseScore: mastermind.baseScore,
                                     baseStrength: mastermind.baseStrength };
 
-mastermindDeck = [ new Villain( sampleMastermindTacticStats).defineLocation( 80, 315, 0.3 ),
-                   new Villain( sampleMastermindTacticStats).defineLocation( 90, 315, 0.3 ),
-                   new Villain( sampleMastermindTacticStats).defineLocation( 100, 315, 0.3 ),
-                   new Villain( sampleMastermindTacticStats).defineLocation( 110, 315, 0.3 ) ];
+mastermindDeck = [ new Villain( sampleMastermindTacticStats).defineLocation( 162.5, 140, 0.3 ),
+                   new Villain( sampleMastermindTacticStats).defineLocation( 172.5, 140, 0.3 ),
+                   new Villain( sampleMastermindTacticStats).defineLocation( 182.5, 140, 0.3 ),
+                   new Villain( sampleMastermindTacticStats).defineLocation( 192.5, 140, 0.3 ) ];
 
 // Prepare the Villain Deck
 var sampleVillainStats = { title: 'Green Goblin',
@@ -69,16 +69,19 @@ var sampleVillainStats = { title: 'Green Goblin',
                            baseScore: 5,
                            baseStrength: 5 };
 
-villainDeck = [ new Villain( sampleVillainStats ).defineLocation(945, 300, 0.3),
-                new Villain( sampleVillainStats ).defineLocation(945, 300, 0.3),
-                new Villain( sampleVillainStats ).defineLocation(945, 300, 0.3),
-                new Villain( sampleVillainStats ).defineLocation(945, 300, 0.3),
-                new Villain( sampleVillainStats ).defineLocation(945, 300, 0.3),
-                new Villain( sampleVillainStats ).defineLocation(945, 300, 0.3),
-                new Villain( sampleVillainStats ).defineLocation(945, 300, 0.3),
-                new Villain( sampleVillainStats ).defineLocation(945, 300, 0.3),
-                new Villain( sampleVillainStats ).defineLocation(945, 300, 0.3),
-                new Villain( sampleVillainStats ).defineLocation(945, 300, 0.3) ];
+villainDeck = [ new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ),
+                new Villain( sampleVillainStats ) ];
+
+// Prepare the scheme
+scheme = new Scheme( { title: 'Do Bad Stuff', text: '...and lots of it.' } ).defineLocation(120, 140, 0.3);
 
 // Prepare the Shield Officer Deck
 var shieldOfficerStats = { title: 'Shield Officer',
@@ -87,11 +90,14 @@ var shieldOfficerStats = { title: 'Shield Officer',
                             baseCost: 3,
                             baseResource: 3 };
 
-shieldOfficersDeck = [ new Hero( shieldOfficerStats ).defineLocation(120, 510, 0.3),
-                       new Hero( shieldOfficerStats ).defineLocation(120, 510, 0.3),
-                       new Hero( shieldOfficerStats ).defineLocation(120, 510, 0.3),
-                       new Hero( shieldOfficerStats ).defineLocation(120, 510, 0.3),
-                       new Hero( shieldOfficerStats ).defineLocation(120, 510, 0.3) ]
+shieldOfficersDeck = [ new Hero( shieldOfficerStats ).defineLocation(67.5, 332, 0.3),
+                       new Hero( shieldOfficerStats ).defineLocation(67.5, 332, 0.3),
+                       new Hero( shieldOfficerStats ).defineLocation(67.5, 332, 0.3),
+                       new Hero( shieldOfficerStats ).defineLocation(67.5, 332, 0.3),
+                       new Hero( shieldOfficerStats ).defineLocation(67.5, 332, 0.3) ]
+
+// Prepare the Wound Deck
+var woundDeck = Array.apply(null, Array(30)).map(function(){return new Wound().defineLocation(810, 140, 0.3)});
 
 // Prepare Players
 for( var i = 0; i < playerCount; i++ ){
@@ -148,7 +154,7 @@ controls.push( new Control({
 // Prepare Headquarters
 for( var i = 0; i < 5; i++ ){
     (function (iCopy) {
-        var x = function(){ headquarters[iCopy] = heroDeck.shift().flip().defineDestination((iCopy*135)+270, 510, 0.3) };
+        var x = function(){ headquarters[iCopy] = heroDeck.shift().flip().defineDestination((iCopy*135)+337.5, 332, 0.3) };
         addToEventQueue( iCopy*60, x );
     }(i));
 }

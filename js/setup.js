@@ -51,10 +51,11 @@ var requestAnimationFrame = w.requestAnimationFrame ||          // Standard/Mode
 var mastermind = null,      // Card of type Mastermind for the current game
     mastermindDeck = []     // A array of cards in the Mastermind deck
     scheme = null,          // Card of type Scheme for the current game
+    schemeTwistsPlayed = 0, // The number of scheme twists to enter play so far
     escapedVillains = [],   // An array of cards in the Escaped Villains pile
     knockedOut = [],        // An array of cards in the "KO" pile
     shieldOfficersDeck = [],// An array of Shield Officers
-    wounds = 30,            // The number of remaining Wounds
+    woundDeck = [],         // The number of remaining Wounds
     bystanderDeck = [],     // An array of cards in the Bystanders pile
     villainDeck = [],       // An array of cards in the Villains deck
     heroDeck = [],          // An array of cards in the Heroes deck
@@ -62,10 +63,15 @@ var mastermind = null,      // Card of type Mastermind for the current game
     headquarters = [null,null,null,null,null],  // An array of cards representing the five positions in the "HQ"
     playerCount = 1,        // The number of players in the current game
     players = [],           // An array of Player objects for the current game
-    selectedCard = null,    // The currently selected card
-    selectedCardLocation = {},  // The true location (x, y, and scale) of the selected card
-    controls = [],          // An array of all controls (buttons) for the game
     eventQueue = [];        // A queau of events sorted by step number
+    
+
+/* DISPLAY VARIABLES
+-------------------------------------------------- */
+var villainRowVisible = true,   // A boolean determining which top row is shown
+    selectedCard = null,        // The currently selected card
+    selectedCardLocation = {},  // The true location (x, y, and scale) of the selected card
+    controls = [];              // An array of all controls (buttons) for the game
     
 
 
@@ -116,7 +122,7 @@ function drawFromVillainDeck() {
         switch( city.indexOf(null) ) {
             case -1:
                 city[4].escape();
-                escapedVillains.unshift(city[4].defineDestination(270, 130, 0.3));
+                escapedVillains.unshift(city[4].defineDestination(337.5, 140, 0.3, true));
             case 4:
                 city[4] = city[3];
             case 3:
@@ -132,9 +138,9 @@ function drawFromVillainDeck() {
         }
         // Updates the destination(s) of villains
         for( var i = 0; i < 5; i++ ){
-            var xPos = ((4-i)*135)+270;
+            var xPos = ((4-i)*135)+337.5;
             if( city[i] != null && city[i].x != xPos ) {
-                city[i].defineDestination(xPos, 300, 0.3);
+                city[i].defineDestination(xPos, 140, 0.3);
             }
         }
     } else {
@@ -193,9 +199,25 @@ function deselectCard( force ) {
 -------------------------------------------------- */
 // Draw Background
 var drawBackground = function( context ){
-    if (resourceReady('background')) {
-        ctx.drawImage(resourceImage('background'), 0, 0, canvasWidth, canvasHeight);
-    }
+//    if (resourceReady('background')) {
+//        ctx.drawImage(resourceImage('background'), 0, 0, canvasWidth, canvasHeight);
+//    }
+    
+    // Stats Bar
+    ctx.fillStyle = '#737373';
+    ctx.fillRect( 0, 0, canvasWidth, canvasHeight / 19 );
+    
+    // Top Row
+    ctx.fillStyle = '#CFCFCF';
+    ctx.fillRect( 0, canvasHeight / 19, canvasWidth, (canvasHeight / 19)*6 );
+    
+    // Middle Row
+    ctx.fillStyle = '#E6E6E6';
+    ctx.fillRect( 0, (canvasHeight / 19)*7, canvasWidth, (canvasHeight / 19)*6 );
+    
+    // Bottom Row
+    ctx.fillStyle = '#CFCFCF';
+    ctx.fillRect( 0, (canvasHeight / 19)*13, canvasWidth, (canvasHeight / 19)*6 );
 }
 
 // Draw Bystanders
@@ -237,7 +259,7 @@ var drawDeckCounts = function( context ){
     context.fillText(mastermindDeck.length, 40, 305)
     context.fillText(shieldOfficersDeck.length, 40, 505)
     context.fillText(villainDeck.length, 960, 285);
-    context.fillText(wounds, 785, 85);
+    context.fillText(woundDeck.length, 785, 85);
 }
 
 // Draw Escaped Villains
@@ -283,6 +305,11 @@ var drawMastermind = function( context ){
     mastermind.draw(context);
 }
 
+// Draws the Scheme
+var drawScheme = function( context ){
+    scheme.draw(context);
+}
+
 // Draws the selected card
 var drawSelected = function( context ){
     // Forces the drawing of the selected card
@@ -303,28 +330,47 @@ var drawShieldOfficers = function( context ){
         shieldOfficersDeck[0].draw( context );
 }
 
+// Draws the Wounds deck
+var drawWounds = function( context ){
+    // TODO make this logic smarter
+    // Draws the second card down of the deck if the top is exposed
+    if( woundDeck.length > 1 && woundDeck[0].y != woundDeck[1].y )
+        woundDeck[1].draw( context );
+    
+    // Draws the top card of the deck
+    if( woundDeck.length > 0 )
+        woundDeck[0].draw( context );
+}
+
 // Draw Actors
 var drawActors = function( context ) {
-    // MUST be drawn first
+    // Draws the background
     drawBackground( context );
     
-    // Draw all visible cards (EXCEPT selected)
-    drawBystanders( context );
+    if( villainRowVisible ){
+        // Draws the villain row
+        drawMastermind( context );
+        drawCity( context );
+    } else {
+        // Draws the scheme row
+        drawScheme( context );
+        drawEscapedVillains( context );
+        drawWounds( context );
+        drawBystanders( context );
+    }
+    
+    // Draw the hero row
     drawShieldOfficers( context );
     drawHeadquarters( context );
-    drawCity( context );
-    drawEscapedVillains( context );
-    drawMastermind( context );
+    
+    // Draw the player row
     players[(currentTurn % playerCount)].draw( context );
     
-    // Draw controls (aka Buttons)
+    // Draw all controls (aka Buttons)
     drawControls( context );
     
-    // MUST be last card drawn
+    // FINALLY, draw the selected card
     drawSelected( context );
-    
-    // Draw the foreground image (frame) TODO find a good frame image
-    // drawFrame( context );
 }
 
 
@@ -353,7 +399,6 @@ var updateEscapedVillains = function( modifier, steps ){
     }
 }
 
-
 // Update Headquarters
 var updateHeadquarters = function( modifier, steps ){
     for( var i = 0; i < headquarters.length; i++ ){
@@ -361,7 +406,6 @@ var updateHeadquarters = function( modifier, steps ){
             headquarters[i].update( modifier, steps );
     }
 }
-
 
 // Update Mastermind
 var updateMastermind = function( modifier, steps ){
@@ -373,6 +417,14 @@ var updateShieldOfficers = function( modifier, steps ){
     // TODO determine if this effectively avoids the overprocessing done on the Escaped Villains Deck
     if( shieldOfficersDeck.length > 0 ){
         shieldOfficersDeck[0].update( modifier, steps );
+    }
+}
+
+// Update Wounds
+var updateWounds = function( modifier, steps ){
+    // TODO determine if this effectively avoids the overprocessing done on the Escaped Villains Deck
+    if( woundDeck.length > 0 ){
+        woundDeck[0].update( modifier, steps );
     }
 }
 
@@ -389,6 +441,7 @@ var updateActors = function( modifier, steps ) {
     updateHeadquarters( modifier, steps );
     updateMastermind( modifier, steps );
     updateShieldOfficers( modifier, steps );
+    updateWounds( modifier, steps );
     players[(currentTurn % playerCount)].update( modifier, steps );
     
     // Updates controls

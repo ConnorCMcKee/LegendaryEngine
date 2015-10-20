@@ -20,17 +20,15 @@ var update = function(step) {
 /* DRAW
 -------------------------------------------------- */
 var draw = function() {
-    if (resourceReady('background')) {
-        ctx.drawImage(resourceImage('background'), 0, 0, canvasWidth, canvasHeight);
-    }
-    
+    // Calls the overarching DRAW function (from setup)
     drawActors( ctx );
 
-    ctx.fillStyle = "rgb(250, 250, 250)";
-    ctx.font = "24px Helvetica";
-    ctx.textAlign = "left";
-    ctx.textBaseline = "top";
-    ctx.fillText("Update Steps: " + numUpdateSteps, 32, 32);
+    // Draws the step count thus far 
+    //    ctx.fillStyle = "rgb(250, 250, 250)";
+    //    ctx.font = "24px Helvetica";
+    //    ctx.textAlign = "left";
+    //    ctx.textBaseline = "top";
+    //    ctx.fillText("Update Steps: " + numUpdateSteps, 32, 32);
 };
 
 

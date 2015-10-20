@@ -5,7 +5,16 @@ canvas.addEventListener("mousedown", canvasClick, false);
 
 function canvasClick(event)
 {
-    // TOD increase performance!!!
+    // Variable used to stop looking for clickable items once one has triggered
+    var clickEventTriggered = false;
+    
+    for( var i = 0; i < controls.length; i++ ){
+        if( controls[i].visible && controls[i].enabled && controls[i].containsPoint(event.x, event.y) ){
+            controls[i].clickAction();
+            clickEventTriggered = true;
+            return;
+        }
+    }
     
     // If there are no selected cards
     if( selectedCard == null ) {
@@ -13,32 +22,19 @@ function canvasClick(event)
         var visibleCards = []; // TODO make list of all visible cards
         
         // Adds current player's cards to the array
-        for( var i = 0; i < players[(currentTurn % playerCount)].length; i++ ) {
-            visibleCards.push( players[(currentTurn % playerCount)][i] );
-        }
-        
-        // Adds the headquarters' cards to the array
-        for( var i = 0; i < 5; i++ ) {
-            if( headquarters[i] != null ) {
-                visibleCards.push( headquarters[i] );
-            }
-        }
-        
-        // Adds the city's cards to the array
-        for( var i = 0; i < 5; i++ ) {
-            if( city[i] != null ) {
-                visibleCards.push( city[i] );
-            }
-        }
-        
-        // Adds the mastermind to the array
-        visibleCards.push( mastermind );
+        visibleCards = players[(currentTurn % playerCount)].hand
+                        .concat( headquarters.filter( function(n){ return n != null }) )
+                        .concat( city.filter( function(n){ return n!= null }) )
+                        .concat( [mastermind,
+                                  shieldOfficersDeck[0]] );
         
         // Iterate through the array, looking for a card containing the mouseclick
         for( var i = 0; i < visibleCards.length; i++ ){
             if( visibleCards[i].containsPoint(event.x, event.y) ) {
                 // Select the clicked card
                 selectCard( visibleCards[i] );
+                clickEventTriggered = true;
+                return;
             }
         }
     

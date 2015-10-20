@@ -53,7 +53,7 @@ var mastermind = null,      // Card of type Mastermind for the current game
     scheme = null,          // Card of type Scheme for the current game
     escapedVillains = [],   // An array of cards in the Escaped Villains pile
     knockedOut = [],        // An array of cards in the "KO" pile
-    shieldOfficers = 30,    // The number of remaining Shield Officers
+    shieldOfficersDeck = [],// An array of Shield Officers
     wounds = 30,            // The number of remaining Wounds
     bystanderDeck = [],     // An array of cards in the Bystanders pile
     villainDeck = [],       // An array of cards in the Villains deck
@@ -126,7 +126,7 @@ function drawFromVillainDeck() {
             case 1:
                 city[1] = city[0];
             case 0:
-                city[0] = villainDeck.shift().defineLocation(945, 300, 0.3);
+                city[0] = villainDeck.shift().flip();
                 // TODO villain ambush
                 break;
         }
@@ -145,33 +145,76 @@ function drawFromVillainDeck() {
 
 // Sets the selected card (and related variables) to the passed card, and moves appropriately
 function selectCard( card ) {
+    // Forces the deselection of currently selected card, if applicable
+    if( selectedCard != null )
+        deselectCard( true );
+    
+    // Stores the location from which the selected card came
     selectedCardLocation = { x: card.destX / canvasScale,
                              y: card.destY / canvasScale,
                              scale: card.destScale };
+    
+    // Moves the selected card to the center of the screen, and grows
     card.defineDestination( 540, 300, 1.0 );
+    
+    // Assigns and returns the selected card
     selectedCard = card;
     return selectedCard;
 }
 
 // Sets the selected card to NULL, and returns the cards to its true location
-function deselectCard() {
+function deselectCard( force ) {
+    // Sets the optional "force" boolean
+    force = force || false;
+    
+    // Stores the currently selected card to return
+    var returnedCard = selectedCard;
+    
+    // Returns the selected card to its original destination, and resets the global location variable
     selectedCard.defineDestination( selectedCardLocation.x, selectedCardLocation.y, selectedCardLocation.scale );
     selectedCardLocation = {};
-    addToEventQueue( numUpdateSteps + 60, function(){   // FIXME deselectCard should not have knowledge of numUpdateSteps (especially before its definition)
+    
+    // Forces an immediate deselection
+    if ( force ){
         selectedCard = null;
-    });
-    return selectedCard;
+    // Allows the card to deselect after it moves to its destination (remaining in the foreground)
+    } else {
+        addToEventQueue( numUpdateSteps + 60, function(){   // FIXME deselectCard should not have knowledge of numUpdateSteps (especially before its definition)
+            selectedCard = null;
+        });
+    }
+    
+    // Returns the (formerly) selected card
+    return returnedCard;
 }
 
 
 /* DRAW FUNCTIONS
 -------------------------------------------------- */
+// Draw Background
+var drawBackground = function( context ){
+    if (resourceReady('background')) {
+        ctx.drawImage(resourceImage('background'), 0, 0, canvasWidth, canvasHeight);
+    }
+}
+
+// Draw Bystanders
+var drawBystanders = function( context ){
+    if( bystanderDeck.length > 0 )
+        bystanderDeck[0].draw( context );
+}
+
 // Draw City
 var drawCity = function( context ){
+    // Draws the cards in the city
     for( var i = 0; i < city.length; i++ ){
         if( city[i] != null )
             city[i].draw( context );
     }
+    
+    // Draws the villain deck
+    if( villainDeck.length > 0 )
+        villainDeck[0].draw( context );
 }
 
 // Draw controls
@@ -192,13 +235,14 @@ var drawDeckCounts = function( context ){
     //context.fillText(escapedVillains.length, )
     context.fillText(heroDeck.length, 960, 485);
     context.fillText(mastermindDeck.length, 40, 305)
-    context.fillText(shieldOfficers, 40, 505)
+    context.fillText(shieldOfficersDeck.length, 40, 505)
     context.fillText(villainDeck.length, 960, 285);
     context.fillText(wounds, 785, 85);
 }
 
 // Draw Escaped Villains
 var drawEscapedVillains = function( context ){
+    // TODO make this logic smarter
     if( escapedVillains.length > 1 && escapedVillains[0].y != escapedVillains[1].y ) {
         escapedVillains[1].draw( context );
     }
@@ -206,19 +250,36 @@ var drawEscapedVillains = function( context ){
     if( escapedVillains.length > 0 ) {
         escapedVillains[0].draw( context );
     }
-    
+}
+
+// Draw Frame
+var drawFrame = function( context ){
+    if (resourceReady('frame')) {
+        ctx.drawImage(resourceImage('frame'), 0, 0, canvasWidth, canvasHeight);
+    }
 }
 
 // Draw Headquarters
 var drawHeadquarters = function( context ){
+    // Draws the cards in headquarters
     for( var i = 0; i < headquarters.length; i++ ){
         if ( headquarters[i] != null )
             headquarters[i].draw( context );
     }
+    
+    // Draws the hero deck
+    if( heroDeck.length > 0 )
+        heroDeck[0].draw( context );
 }
 
 // Draws the Mastermind
 var drawMastermind = function( context ){
+    // Draws the mastermind tactics cards
+    for( var i = 0; i < mastermindDeck.length; i++ ){
+        mastermindDeck[i].draw( context );
+    }
+    
+    // Draws the mastermind
     mastermind.draw(context);
 }
 
@@ -230,20 +291,40 @@ var drawSelected = function( context ){
     }
 }
 
+// Draws the Shield Officers deck
+var drawShieldOfficers = function( context ){
+    // TODO make this logic smarter
+    // Draws the second card down of the deck if the top is exposed
+    if( shieldOfficersDeck.length > 1 && shieldOfficersDeck[0].y != shieldOfficersDeck[1].y )
+        shieldOfficersDeck[1].draw( context );
+    
+    // Draws the top card of the deck
+    if( shieldOfficersDeck.length > 0 )
+        shieldOfficersDeck[0].draw( context );
+}
+
 // Draw Actors
 var drawActors = function( context ) {
+    // MUST be drawn first
+    drawBackground( context );
+    
+    // Draw all visible cards (EXCEPT selected)
+    drawBystanders( context );
+    drawShieldOfficers( context );
     drawHeadquarters( context );
     drawCity( context );
     drawEscapedVillains( context );
     drawMastermind( context );
-    drawDeckCounts( context );
     players[(currentTurn % playerCount)].draw( context );
+    
+    // Draw controls (aka Buttons)
+    drawControls( context );
     
     // MUST be last card drawn
     drawSelected( context );
     
-    // Draw controls
-    drawControls( context );
+    // Draw the foreground image (frame) TODO find a good frame image
+    // drawFrame( context );
 }
 
 
@@ -287,6 +368,14 @@ var updateMastermind = function( modifier, steps ){
     mastermind.update( modifier, steps );
 }
 
+// Update Shield Officers
+var updateShieldOfficers = function( modifier, steps ){
+    // TODO determine if this effectively avoids the overprocessing done on the Escaped Villains Deck
+    if( shieldOfficersDeck.length > 0 ){
+        shieldOfficersDeck[0].update( modifier, steps );
+    }
+}
+
 // Update Actors
 var updateActors = function( modifier, steps ) {
     // Performas appropriate eventQueue actions
@@ -299,6 +388,7 @@ var updateActors = function( modifier, steps ) {
     updateEscapedVillains( modifier, steps );
     updateHeadquarters( modifier, steps );
     updateMastermind( modifier, steps );
+    updateShieldOfficers( modifier, steps );
     players[(currentTurn % playerCount)].update( modifier, steps );
     
     // Updates controls

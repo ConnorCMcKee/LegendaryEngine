@@ -32,6 +32,8 @@ var resourceReady = function( name ) {
 -------------------------------------------------- */
 // Background
 addResource( 'background', 'common/background.jpg' );
+// Frame
+addResource( 'frame', 'common/frame.png' );
 // Card Back
 addResource( 'cardBack', 'common/cardBack.jpg' );
 //// Turret

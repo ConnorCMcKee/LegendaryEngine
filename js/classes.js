@@ -2,7 +2,7 @@
 -------------------------------------------------- */
 var Card = Class.create({
     // Constructor
-    initialize: function(image, title, subtitle, text, faceUp){
+    initialize: function(image, title, subtitle, text, faceDown){
         this.image = image || 'cardBack';
         this.title = title || 'NO NAME';
         this.subtitle = subtitle || '';
@@ -17,7 +17,7 @@ var Card = Class.create({
         this.destY = 0;
         this.destScale = 0;
         // Boolean for the card's side-up
-        this.faceUp = faceUp || true;
+        this.faceDown = faceDown || false;
     },
     // Class Variable(s)
     baseWidth: 360 * canvasScale,
@@ -52,7 +52,7 @@ var Card = Class.create({
     },
     // Flips the card
     flip: function(){
-        this.faceUp = !this.faceUp;
+        this.faceDown = !this.faceDown;
         return this;
     },
     // Checks if the passed cartesian coordinate exists with this card
@@ -75,7 +75,7 @@ var Card = Class.create({
             ctx.fillRect(this.x-(this.baseWidth/2*this.scale), this.y-(this.baseHeight/2*this.scale), this.baseWidth*this.scale, this.baseHeight*this.scale);
 
             // If the card is being rendered face UP
-            if( this.faceUp ){
+            if( !this.faceDown ){
 
                 // Determines the correct color for the card's background
                 if( this.colors.length < 2 ) {
@@ -179,7 +179,7 @@ var Card = Class.create({
 -------------------------------------------------- */
 var Bystander = Class.create(Card, {
     initialize: function($super, options ){
-        $super( options.image, options.title, options.subtitle, options.text, options.faceUp );
+        $super( options.image, options.title, options.subtitle, options.text, options.faceDown );
         this.baseScore = options.baseScore || 1;
         this.getScore = options.getScore || baseGetScore;
         this.customRescue = options.customRescue || baseRescue;
@@ -195,7 +195,7 @@ var Bystander = Class.create(Card, {
 -------------------------------------------------- */
 var Hero = Class.create(Card, {
     initialize: function($super, options ){
-        $super( options.image, options.title, options.subtitle, options.text, options.faceUp );
+        $super( options.image, options.title, options.subtitle, options.text, options.faceDown );
         this.team = options.team;
         this.colors = options.colors || ['gray'];
         this.baseCost = options.baseCost || 0;
@@ -226,7 +226,7 @@ var Hero = Class.create(Card, {
 -------------------------------------------------- */
 var Mastermind = Class.create(Card, {
    initialize: function($super, options ){
-        $super( options.image, options.title, 'Mastermind', options.text, options.faceUp );
+        $super( options.image, options.title, 'Mastermind', options.text, options.faceDown );
         this.baseScore = options.baseScore || 1;
         this.baseStrength = options.baseStrength || 1;
         this.getScore = options.getScore || baseGetScore;
@@ -250,7 +250,7 @@ var Villain = Class.create(Card, {
     initialize: function($super, options ){
         this.team = options.team
         this.subtype = options.subtype || 'Villain';
-        $super( options.image, options.title, this.subtype + ' - ' + this.team, options.text, options.faceUp );
+        $super( options.image, options.title, this.subtype + ' - ' + this.team, options.text, options.faceDown );
         this.baseScore = options.baseScore || 1;
         this.baseStrength = options.baseStrength || 1;
         this.getScore = options.getScore || baseGetScore;
@@ -278,13 +278,13 @@ var Villain = Class.create(Card, {
 });
 
 
-/* HAND
+/* Player
 -------------------------------------------------- */
 var Player = Class.create({
     initialize: function(playerNumber){
         this.playerNumber = playerNumber;
         this.hand = [];
-        this.handOnScreen = true;
+        this.handOnScreen = false;
         // Builds the starting deck
         var trooperStats = {  title: 'Shield Trooper',
                               subtitle: 'Shield',
@@ -300,7 +300,7 @@ var Player = Class.create({
     drawCard: function(){
         // Draws card
         if( this.drawDeck.length > 0 ){
-            this.hand.push( this.drawDeck.shift().defineLocation(540,700,0.35) );
+            this.hand.push( this.drawDeck.shift().defineLocation(540,730,0.35) );
         } else {
             this.drawDeck = shuffle( this.discardPile );
             this.discardPile = [];
@@ -317,14 +317,12 @@ var Player = Class.create({
     },
     arrangeHand: function( showHand ){
         this.handOnScreen = showHand;
-        // Determines the cards' destY
-        var startingDestY = showHand ? 300 : 700;
         // Arranges cards in hand
         for( var i = 0; i < this.hand.length; i++ ){
             if( showHand ) {
                 this.hand[i].defineDestination( i*(1040/this.hand.length)+(1040/this.hand.length)/2, 300, 0.4 )
             } else {
-                this.hand[i].defineDestination( 540, 700, 0.4 )
+                this.hand[i].defineDestination( 540, 730, 0.4 )
             }
         }
     },
@@ -372,10 +370,29 @@ var Control = Class.create({
     clickAction: function(){
         this.customClickAction();
     },
+    // Checks if the passed cartesian coordinate exists with this card
+    containsPoint: function(x, y){
+        if( x >= this.x-this.width
+                && x <= this.x+this.width
+                && y >= this.y-this.height
+                && y <= this.y+this.height ) {
+            return true;
+        } else {
+            return false;
+        }
+    },
     draw: function( ctx ){
         if( this.visible ) {
+            // Draws the button shape
             ctx.fillStyle = this.color;
             ctx.fillRect(this.x-(this.width/2), this.y-(this.height/2), this.width, this.height);
+            
+            // Draws the button text
+            ctx.fillStyle = this.enabled ? "White" : "Gray";
+            ctx.font = (20 * canvasScale) +"px Helvetica";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(this.text, this.x, this.y);
         }
     },
     update: function( modifier, steps ){

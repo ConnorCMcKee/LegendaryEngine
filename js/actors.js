@@ -1,24 +1,24 @@
 /* CARD ACTORS
 -------------------------------------------------- */
-// Prepare Bystander Deck
+// Bystander Deck
 var sampleBystanderStats = { title: 'Bystander',
                              text: 'I am a bystander',
                              baseScore: 1,
                              faceDown: true,
                              faceUp: false };
 
-bystanderDeck = [ new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3),
-                  new Bystander( sampleBystanderStats ).defineLocation(1000, 140, 0.3) ];
+bystanderDeck = [ new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ),
+                  new Bystander( sampleBystanderStats ) ];
 
-// Prepare Hero Deck
+// Hero Deck
 var sampleHeroStats = { title: 'Silent Sniper',
                         subtitle: 'Black Widow',
                         text: 'This is test text',
@@ -41,7 +41,7 @@ heroDeck = [ new Hero( sampleHeroStats ),
 
 heroDeck[0].colors = ['Red','Green']; // This is simply to test gradients on cards
 
-// Prepare Mastermind (and Deck)
+//  Mastermind (and Mastermind Deck)
 mastermind = new Mastermind( { title: 'Magneto',
                                text: 'A wizard is never late...',
                                alwaysLeads: 'Brotherhood',
@@ -56,12 +56,24 @@ var sampleMastermindTacticStats = { title: 'First Tactic!',
                                     baseScore: mastermind.baseScore,
                                     baseStrength: mastermind.baseStrength };
 
-mastermindDeck = [ new Villain( sampleMastermindTacticStats).defineLocation( 162.5, 140, 0.3 ),
-                   new Villain( sampleMastermindTacticStats).defineLocation( 172.5, 140, 0.3 ),
-                   new Villain( sampleMastermindTacticStats).defineLocation( 182.5, 140, 0.3 ),
-                   new Villain( sampleMastermindTacticStats).defineLocation( 192.5, 140, 0.3 ) ];
+mastermindDeck = [ new Villain( sampleMastermindTacticStats).defineLocation( X_POSITIONS[1]-40, VILLAIN_ROW_Y, 0.3 ),
+                   new Villain( sampleMastermindTacticStats).defineLocation( X_POSITIONS[1]-30, VILLAIN_ROW_Y, 0.3 ),
+                   new Villain( sampleMastermindTacticStats).defineLocation( X_POSITIONS[1]-20, VILLAIN_ROW_Y, 0.3 ),
+                   new Villain( sampleMastermindTacticStats).defineLocation( X_POSITIONS[1]-10, VILLAIN_ROW_Y, 0.3 ) ];
 
-// Prepare the Villain Deck
+// Scheme
+scheme = new Scheme( { title: 'Do Bad Stuff', text: '...and lots of it.' } );
+
+// Shield Officer Deck
+var shieldOfficerStats = { title: 'Shield Officer',
+                            subtitle: 'Shield',
+                            team: 'Shield',
+                            baseCost: 3,
+                            baseResource: 3 };
+
+shieldOfficersDeck = Array.apply(null, Array(30)).map(function(){return new Hero( shieldOfficerStats ).defineLocation(X_POSITIONS[1], HERO_ROW_Y, 0.3) });
+
+// Villain Deck
 var sampleVillainStats = { title: 'Green Goblin',
                            team: 'Sinister Syndicate',
                            text: 'Sample Card Text',
@@ -80,30 +92,8 @@ villainDeck = [ new Villain( sampleVillainStats ),
                 new Villain( sampleVillainStats ),
                 new Villain( sampleVillainStats ) ];
 
-// Prepare the scheme
-scheme = new Scheme( { title: 'Do Bad Stuff', text: '...and lots of it.' } ).defineLocation(120, -52, 0.3);
-
-// Prepare the Shield Officer Deck
-var shieldOfficerStats = { title: 'Shield Officer',
-                            subtitle: 'Shield',
-                            team: 'Shield',
-                            baseCost: 3,
-                            baseResource: 3 };
-
-shieldOfficersDeck = [ new Hero( shieldOfficerStats ).defineLocation(67.5, 332, 0.3),
-                       new Hero( shieldOfficerStats ).defineLocation(67.5, 332, 0.3),
-                       new Hero( shieldOfficerStats ).defineLocation(67.5, 332, 0.3),
-                       new Hero( shieldOfficerStats ).defineLocation(67.5, 332, 0.3),
-                       new Hero( shieldOfficerStats ).defineLocation(67.5, 332, 0.3) ]
-
-// Prepare the Wound Deck
-var woundDeck = Array.apply(null, Array(30)).map(function(){return new Wound().defineLocation(810, 140, 0.3)});
-
-// Prepare Players
-for( var i = 0; i < playerCount; i++ ){
-    players[i] = new Player( i );
-    players[i].drawUp();
-}
+// Wound Deck
+var woundDeck = Array.apply(null, Array(30)).map(function(){return new Wound()});
 
 
 /* CONTROL ACTORS
@@ -125,13 +115,56 @@ controls.push( new Control({
     }
 }));
 
-// Play Selected Card from Hand button
+// Reveals or hides the Player Panel
+controls.push( new Control({
+    text: 'Player Panel',
+    width: 120,
+    height: 31,
+    x: 186,
+    y: 16,
+    visible: true,
+    enableCondition: function(){
+        if( selectedCard == null ){
+            return true;
+        } else {
+            return false;
+        }
+    },
+    customClickAction: function(){
+        var player = players[(currentTurn % playerCount)];
+        
+        if( playerPanel.hidden ){
+            // Moves the player deck
+            for (var i = 0; i < player.drawDeck.length; i++ ){
+                player.drawDeck[i].defineYDestination( HAND_ROW_Y );
+            }
+            // Moves the player discard
+            for (var i = 0; i < player.discardPile.length; i++ ){
+                player.discardPile[i].defineYDestination( HAND_ROW_Y );
+            }
+        } else {
+            // Moves the player deck
+            for (var i = 0; i < player.drawDeck.length; i++ ){
+                player.drawDeck[i].defineYDestination( PLAYER_ROW_Y );
+            }
+            // Moves the player discard
+            for (var i = 0; i < player.discardPile.length; i++ ){
+                player.discardPile[i].defineYDestination( PLAYER_ROW_Y );
+            }
+        }
+        
+        // Toggles the hidden state of Scheme Panel
+        playerPanel.hidden = !playerPanel.hidden;
+    }
+}));
+
+// Reveals or hides the Scheme Panel
 controls.push( new Control({
     text: 'Scheme Panel',
     width: 120,
-    height: 50,
-    x: 540,
-    y: 40,
+    height: 31,
+    x: 62,
+    y: 16,
     visible: true,
     enableCondition: function(){
         if( selectedCard == null ){
@@ -142,24 +175,39 @@ controls.push( new Control({
     },
     customClickAction: function(){
         if( schemePanel.hidden ){
-            schemePanel.hidden = false;
+            // Moves the panel
             scheme.defineYDestination( 140 );
+            // Moves the wound deck
             for( var i = 0; i < woundDeck.length; i++ ){
                 woundDeck[i].defineYDestination( 140 );
             }
+            // Moves the bystander deck
             for( var i = 0; i < bystanderDeck.length; i++ ){
                 bystanderDeck[i].defineYDestination( 140 );
             }
+            // Moves the escaped villains deck
+            for( var i = 0; i < escapedVillains.length; i++ ){
+                escapedVillains[i].defineYDestination( 140 );
+            }
         } else {
-            schemePanel.hidden = true;
+            // Moves the panel
             scheme.defineYDestination( -52 );
+            // Moves the wound deck
             for( var i = 0; i < woundDeck.length; i++ ){
                 woundDeck[i].defineYDestination( -52 );
             }
+            // Moves the bystander deck
             for( var i = 0; i < bystanderDeck.length; i++ ){
                 bystanderDeck[i].defineYDestination( -52 );
             }
+            // Moves the escaped villains deck
+            for( var i = 0; i < escapedVillains.length; i++ ){
+                escapedVillains[i].defineYDestination( -52 );
+            }
         }
+        
+        // Toggles the hidden state of Scheme Panel
+        schemePanel.hidden = !schemePanel.hidden;
     }
 }));
 
@@ -170,6 +218,20 @@ controls.push( new Control({
 schemePanel = new Panel({
     hiddenY: ( canvasHeight / 19.0 ) * -5
 });
+
+// The player (bottom) panel
+playerPanel = new Panel({
+    hiddenY: canvasHeight,
+    shownY: ( canvasHeight / 19.0 ) * 13
+});
+
+
+/* PLAYER ACTORS
+-------------------------------------------------- */
+for( var i = 0; i < playerCount; i++ ){
+    players[i] = new Player( i );
+    players[i].drawUp();
+}
 
 
 /* QUEUED EVENTS VARIABLES

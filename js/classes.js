@@ -188,6 +188,10 @@ var Bystander = Class.create(Card, {
         this.baseScore = options.baseScore || 1;
         this.getScore = options.getScore || baseGetScore;
         this.customRescue = options.customRescue || baseRescue;
+        // Default position
+        this.x = this.destX = X_POSITIONS[7] * canvasScale;
+        this.y = this.destY = SCHEME_ROW_Y * canvasScale;
+        this.scale = this.destScale = 0.3;
     },
     cardType: 'Bystander',
     rescue: function() {
@@ -211,12 +215,9 @@ var Hero = Class.create(Card, {
         this.getAttack = options.customGetAttack || baseGetAttack;
         this.getResource = options.customGetResource || baseGetResource;
         // Default position
-        this.x = 1012.5 * canvasScale;
-        this.destX = 1012.5 * canvasScale;
-        this.y = 332 * canvasScale;
-        this.destY = 332 * canvasScale;
-        this.scale = 0.3;
-        this.destScale = 0.3;
+        this.x = this.destX = X_POSITIONS[7] * canvasScale;
+        this.y = this.destY = HERO_ROW_Y * canvasScale;
+        this.scale = this.destScale = 0.3;
     },
     cardType: 'Hero',
     attack: function() {
@@ -246,12 +247,9 @@ var Mastermind = Class.create(Card, {
         this.alwaysLeads = options.alwaysLeads;
         this.customMasterStrike = options.customMasterStrike || baseMasterStrike;
         // Default position
-        this.x = 202.5 * canvasScale;
-        this.destX = 202.5 * canvasScale;
-        this.y = 140 * canvasScale;
-        this.destY = 140 * canvasScale;
-        this.scale = 0.3;
-        this.destScale = 0.3;
+        this.x = this.destX = X_POSITIONS[1] * canvasScale;
+        this.y = this.destY = VILLAIN_ROW_Y * canvasScale;
+        this.scale = this.destScale = 0.3;
     },
     cardType: 'Mastermind',
     masterStrike: function() {
@@ -274,6 +272,10 @@ var Scheme = Class.create(Card, {
         this.schemeTwistCount = options.schemeTwistCount || 6;
         this.schemeTwistEffects = options.schemeTwistEffects || Array.apply(null, Array(this.schemeTwistCount)).map( function(){return baseSchemeTwistEffect});
         this.customWinCondition = options.customWinCondition || baseWinCondition;
+        // Default position
+        this.x = this.destX = X_POSITIONS[1] * canvasScale;
+        this.y = this.destY = SCHEME_ROW_Y * canvasScale;
+        this.scale = this.destScale = 0.3;
     },
     cardType: 'Scheme',
     schemeTwist: function() {
@@ -300,12 +302,9 @@ var Villain = Class.create(Card, {
         this.customEscape = options.customEscape || baseEscape;
         this.customFight = options.customFight || baseFight;
         // Default position
-        this.x = 1012.5 * canvasScale;
-        this.destX = 1012.5 * canvasScale;
-        this.y = 140 * canvasScale;
-        this.destY = 140 * canvasScale;
-        this.scale = 0.3;
-        this.destScale = 0.3;
+        this.x = this.destX = X_POSITIONS[7] * canvasScale;
+        this.y = this.destY = VILLAIN_ROW_Y * canvasScale;
+        this.scale = this.destScale = 0.3;
     },
     cardType: 'Villain',
     ambush: function() {
@@ -332,6 +331,10 @@ var Wound = Class.create(Card, {
     initialize: function($super){
         $super( 'cardBack', 'WOUND', '', "This is a wound's text", false );
         this.colors = ['red','black'];
+        // Default position
+        this.x = this.destX = X_POSITIONS[6] * canvasScale;
+        this.y = this.destY = SCHEME_ROW_Y * canvasScale;
+        this.scale = this.destScale = 0.3;
     },
     cardType: 'Wound',
     play: function() {
@@ -350,18 +353,40 @@ var Player = Class.create({
         var trooperStats = {  title: 'Shield Trooper',
                               subtitle: 'Shield',
                               team: 'Shield',
-                              baseAttack: 1 };
+                              baseAttack: 1,
+                              faceDown: true };
         var agentStats = {  title: 'Shield Agent',
                             subtitle: 'Shield',
                             team: 'Shield',
-                            baseResource: 1 };
-        this.drawDeck = shuffle( Array.apply(null, Array(4)).map(function(){return new Hero(trooperStats)}).concat( Array.apply(null, Array(8)).map(function(){return new Hero(agentStats)}) ) );
-        this.discardPile = [];
+                            baseResource: 1,
+                            faceDown: true };
+        this.drawDeck = shuffle( Array.apply(null, Array(4)).map(function(){return new Hero(trooperStats).defineLocation(X_POSITIONS[5],PLAYER_ROW_Y,0.3)})
+                                                    .concat( Array.apply(null, Array(8)).map(function(){return new Hero(agentStats).defineLocation(X_POSITIONS[5],PLAYER_ROW_Y,0.3)}) ) );
+        this.discardPile = [],
+        this.victoryPile = [],
+        this.artifacts = [];
+    },
+    discardByIndex: function( index ){
+        // Moves the card at hand[index] to discardPile[0]
+        this.discardPile.unshift( this.hand.splice( index, 1)[0] );
+        // Rearranges hand for the new number of cards
+        this.arrangeHand();
+        // Returns the deleted card
+        return this.discardPile[0].defineDestination( X_POSITIONS[6], PLAYER_ROW_Y, 0.3 );
+    },
+    discardByObject: function( card ){
+        index = this.hand.indexOf( card );
+        if( index >= 0 ){
+            this.discardByIndex( index );
+            return true;
+        } else {
+            return false;
+        }
     },
     drawCard: function(){
         // Draws card
         if( this.drawDeck.length > 0 ){
-            this.hand.push( this.drawDeck.shift().defineLocation(540,730,0.3) );
+            this.hand.push( this.drawDeck.shift().defineLocation(X_POSITIONS[5],PLAYER_ROW_Y,0.3).flip() );
         } else {
             this.drawDeck = shuffle( this.discardPile );
             this.discardPile = [];
@@ -379,7 +404,7 @@ var Player = Class.create({
     arrangeHand: function(){
         // Arranges cards in hand
         for( var i = 0; i < this.hand.length; i++ ){
-            this.hand[i].defineDestination( i*(1080/this.hand.length)+(1080/this.hand.length)/2, 524, 0.3 );
+            this.hand[i].defineDestination( i*(1080/this.hand.length)+(1080/this.hand.length)/2, HAND_ROW_Y, 0.3 );
         }
     },
     playFromHand(){
@@ -428,10 +453,10 @@ var Control = Class.create({
     },
     // Checks if the passed cartesian coordinate exists with this card
     containsPoint: function(x, y){
-        if( x >= this.x-this.width
-                && x <= this.x+this.width
-                && y >= this.y-this.height
-                && y <= this.y+this.height ) {
+        if( x >= this.x-this.width/2
+                && x <= this.x+this.width/2
+                && y >= this.y-this.height/2
+                && y <= this.y+this.height/2 ) {
             return true;
         } else {
             return false;
@@ -445,7 +470,7 @@ var Control = Class.create({
             
             // Draws the button text
             ctx.fillStyle = this.enabled ? "White" : "Gray";
-            ctx.font = (20 * canvasScale) +"px Helvetica";
+            ctx.font = (16 * canvasScale) +"px Helvetica";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText(this.text, this.x, this.y);

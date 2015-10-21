@@ -36,7 +36,3 @@ addResource( 'background', 'common/background.jpg' );
 addResource( 'frame', 'common/frame.png' );
 // Card Back
 addResource( 'cardBack', 'common/cardBack.jpg' );
-//// Turret
-//addResource( 'turret', 'turrets/peaShooter.png' );
-//// Projectile
-//addResource( 'projectile', 'effects/peaProjectile.png' );

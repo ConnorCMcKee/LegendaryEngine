@@ -69,14 +69,22 @@ var mastermind = null,      // Card of type Mastermind for the current game
 /* DISPLAY VARIABLES
 -------------------------------------------------- */
 var schemePanel = null,         // The top Panel-type item
-    schemePanelVisible = false, // A boolean determining which top row is shown
     playerPanel = null,         // The bottom Panel-type item
-    playerPanelVisible = false, // A boolean determining which bottom row is shown
     playerPanelPlayerNumber = 0,// PLayers index of currently shown player's area
     selectedCard = null,        // The currently selected card
     selectedCardLocation = {},  // The true location (x, y, and scale) of the selected card
     controls = [];              // An array of all controls (buttons) for the game
-    
+
+
+/* DISPLAY CONSTANTS
+-------------------------------------------------- */
+var SCHEME_ROW_Y = -52,
+    VILLAIN_ROW_Y = 140,
+    HERO_ROW_Y = 332,
+    HAND_ROW_Y = 524,
+    PLAYER_ROW_Y = 716,
+    X_POSITIONS = [67.5, 202.5, 337.5, 472.5, 607.5, 742.5, 877.5, 1012.5],
+    STANDARD_SCALE = 0.3;
 
 
 /* TURN VARIABLES
@@ -126,7 +134,7 @@ function drawFromVillainDeck() {
         switch( city.indexOf(null) ) {
             case -1:
                 city[4].escape();
-                escapedVillains.unshift(city[4].defineDestination(337.5, 140, 0.3, true));
+                escapedVillains.unshift(city[4].defineDestination(X_POSITIONS[2], SCHEME_ROW_Y, 0.3));
             case 4:
                 city[4] = city[3];
             case 3:
@@ -142,9 +150,9 @@ function drawFromVillainDeck() {
         }
         // Updates the destination(s) of villains
         for( var i = 0; i < 5; i++ ){
-            var xPos = ((4-i)*135)+337.5;
+            var xPos = X_POSITIONS[(4-i)+2];
             if( city[i] != null && city[i].x != xPos ) {
-                city[i].defineDestination(xPos, 140, 0.3);
+                city[i].defineDestination(xPos, VILLAIN_ROW_Y, 0.3);
             }
         }
     } else {
@@ -203,25 +211,21 @@ function deselectCard( force ) {
 -------------------------------------------------- */
 // Draw Background
 var drawBackground = function( context ){
-//    if (resourceReady('background')) {
-//        ctx.drawImage(resourceImage('background'), 0, 0, canvasWidth, canvasHeight);
-//    }
+    if (resourceReady('background')) {
+        ctx.drawImage(resourceImage('background'), 0, 0, canvasWidth, canvasHeight);
+    }
     
-    // Stats Bar
-    ctx.fillStyle = '#737373';
-    ctx.fillRect( 0, 0, canvasWidth, canvasHeight / 19 );
-    
-    // Top Row
-    ctx.fillStyle = '#CFCFCF';
-    ctx.fillRect( 0, canvasHeight / 19, canvasWidth, (canvasHeight / 19)*6 );
-    
-    // Middle Row
-    ctx.fillStyle = '#E6E6E6';
-    ctx.fillRect( 0, (canvasHeight / 19)*7, canvasWidth, (canvasHeight / 19)*6 );
-    
-    // Bottom Row
-    ctx.fillStyle = '#CFCFCF';
-    ctx.fillRect( 0, (canvasHeight / 19)*13, canvasWidth, (canvasHeight / 19)*6 );
+//    // Top Row
+//    ctx.fillStyle = '#CFCFCF';
+//    ctx.fillRect( 0, canvasHeight / 19, canvasWidth, (canvasHeight / 19)*6 );
+//    
+//    // Middle Row
+//    ctx.fillStyle = '#E6E6E6';
+//    ctx.fillRect( 0, (canvasHeight / 19)*7, canvasWidth, (canvasHeight / 19)*6 );
+//    
+//    // Bottom Row
+//    ctx.fillStyle = '#CFCFCF';
+//    ctx.fillRect( 0, (canvasHeight / 19)*13, canvasWidth, (canvasHeight / 19)*6 );
 }
 
 // Draw Bystanders
@@ -245,25 +249,15 @@ var drawCity = function( context ){
 
 // Draw controls
 var drawControls = function( context ){
+    // Draws the foreground stats and controls bar
+    ctx.fillStyle = '#737373';
+    ctx.fillRect( 0, 0, canvasWidth, canvasHeight / 19 );
+    
+    // Draws controls themselves
     for( var i = 0; i < controls.length; i++ ){
         if( controls[i].visible )
             controls[i].draw( context );
     }
-}
-
-// Draw Deck Counts
-var drawDeckCounts = function( context ){
-    context.fillStyle = "rgb(250, 250, 250)";
-    context.font = "36px Helvetica";
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.fillText(bystanderDeck.length, 960, 85);
-    //context.fillText(escapedVillains.length, )
-    context.fillText(heroDeck.length, 960, 485);
-    context.fillText(mastermindDeck.length, 40, 305)
-    context.fillText(shieldOfficersDeck.length, 40, 505)
-    context.fillText(villainDeck.length, 960, 285);
-    context.fillText(woundDeck.length, 785, 85);
 }
 
 // Draw Escaped Villains
@@ -307,6 +301,40 @@ var drawMastermind = function( context ){
     
     // Draws the mastermind
     mastermind.draw(context);
+}
+
+// Draws the Player Deck
+var drawPlayerDeck = function( context ){
+    var playerDeck = players[(currentTurn % playerCount)].drawDeck;
+    
+    if( playerDeck.length > 1 )
+        playerDeck[1].draw( context );
+    
+    // Draws the top card of the deck
+    if( playerDeck.length > 0 )
+        playerDeck[0].draw( context );
+}
+
+// Draws the Player Discard
+var drawPlayerDiscard = function( context ){
+    var playerDiscard = players[(currentTurn % playerCount)].discardPile;
+    
+    if( playerDiscard.length > 1 )
+        playerDiscard[1].draw( context );
+    
+    // Draws the top card of the deck
+    if( playerDiscard.length > 0 )
+        playerDiscard[0].draw( context );
+}
+
+// Draws the Player Panel
+var drawPlayerPanel = function( context ){
+    // Draws the Player Panel
+    playerPanel.draw( context );
+    
+    // Draws the cards on the Player Panel
+    drawPlayerDeck(context);
+    drawPlayerDiscard( context );
 }
 
 // Draws the Scheme
@@ -367,17 +395,18 @@ var drawActors = function( context ) {
     drawMastermind( context );
     drawCity( context );
     
-    // Draws the scheme row
-    //if( schemePanelVisible ){
-        drawSchemePanel( context );
-    //}
+    // Draws the scheme row (must be after villain row)
+    drawSchemePanel( context );
     
     // Draw the hero row
     drawShieldOfficers( context );
     drawHeadquarters( context );
     
-    // Draw the player row
+    // Draw the hand row
     players[(currentTurn % playerCount)].draw( context );
+    
+    // Draw the player row (must be after hand row)
+    drawPlayerPanel( context );
     
     // Draw all controls (aka Buttons)
     drawControls( context );
@@ -437,11 +466,46 @@ var updateMastermind = function( modifier, steps ){
     mastermind.update( modifier, steps );
 }
 
+// Updates the Player Deck
+var updatePlayerDeck = function( modifier, steps ){
+    var playerDeck = players[(currentTurn % playerCount)].drawDeck;
+    
+    if( playerDeck.length > 1 )
+        playerDeck[1].update( modifier, steps );
+    
+    // Draws the top card of the deck
+    if( playerDeck.length > 0 )
+        playerDeck[0].update( modifier, steps );
+}
+
+// Updates the Player Discard
+var updatePlayerDiscard = function( modifier, steps ){
+    var playerDiscard = players[(currentTurn % playerCount)].discardPile;
+    
+    if( playerDiscard.length > 1 )
+        playerDiscard[1].update( modifier, steps );
+    
+    // Draws the top card of the deck
+    if( playerDiscard.length > 0 )
+        playerDiscard[0].update( modifier, steps );
+}
+
+// Update Player Panel
+var updatePlayerPanel = function( modifier, steps ){
+    // Draws the Player Panel
+    playerPanel.update( modifier, steps );
+    
+    // Draws the cards on the Player Panel
+    updatePlayerDeck( modifier, steps );
+    updatePlayerDiscard( modifier, steps );
+}
+
 // Update Scheme
 var updateScheme = function( modifier, steps ){
     scheme.update( modifier, steps );
 }
 
+// Update Scheme Panel
 var updateSchemePanel = function( modifier, steps ){
     // Draws the Scheme Panel
     schemePanel.update( modifier, steps );
@@ -482,6 +546,9 @@ var updateActors = function( modifier, steps ) {
     
     // Updates the Scheme Panel
     updateSchemePanel( modifier, steps );
+    
+    // Updates the Player Panel
+    updatePlayerPanel( modifier, steps );
     
     // Updates cards
     updateCity( modifier, steps );

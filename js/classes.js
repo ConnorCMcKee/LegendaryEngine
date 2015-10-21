@@ -50,6 +50,11 @@ var Card = Class.create({
         this.destScale = dscale;
         return this;
     },
+    //
+    defineYDestination: function( dy ){
+        this.destY = dy*canvasScale;
+        return this;
+    },
     // Flips the card
     flip: function(){
         this.faceDown = !this.faceDown;
@@ -341,7 +346,6 @@ var Player = Class.create({
     initialize: function(playerNumber){
         this.playerNumber = playerNumber;
         this.hand = [];
-        this.handOnScreen = false;
         // Builds the starting deck
         var trooperStats = {  title: 'Shield Trooper',
                               subtitle: 'Shield',
@@ -357,7 +361,7 @@ var Player = Class.create({
     drawCard: function(){
         // Draws card
         if( this.drawDeck.length > 0 ){
-            this.hand.push( this.drawDeck.shift().defineLocation(540,730,0.35) );
+            this.hand.push( this.drawDeck.shift().defineLocation(540,730,0.3) );
         } else {
             this.drawDeck = shuffle( this.discardPile );
             this.discardPile = [];
@@ -365,22 +369,17 @@ var Player = Class.create({
         }
         
         // Arranges Hand
-        this.arrangeHand( this.handOnScreen );
+        this.arrangeHand();
     },
     drawUp: function(){
         while( this.hand.length < 6 ) {
             this.drawCard();
         }
     },
-    arrangeHand: function( showHand ){
-        this.handOnScreen = showHand;
+    arrangeHand: function(){
         // Arranges cards in hand
         for( var i = 0; i < this.hand.length; i++ ){
-            if( showHand ) {
-                this.hand[i].defineDestination( i*(1080/this.hand.length)+(1080/this.hand.length)/2, 300, 0.4 )
-            } else {
-                this.hand[i].defineDestination( 540, 730, 0.4 )
-            }
+            this.hand[i].defineDestination( i*(1080/this.hand.length)+(1080/this.hand.length)/2, 524, 0.3 );
         }
     },
     playFromHand(){
@@ -464,5 +463,43 @@ var Control = Class.create({
             this.visible = false;
             this.enabled = false;
         }
+    }
+})
+
+
+/* PANEL
+-------------------------------------------------- */
+var Panel = Class.create({
+    initialize: function(options){
+        // Display options
+        this.color = options.color || 'Orange';
+        this.hiddenY = options.hiddenY || 0;
+        this.shownY = options.shownY || this.hiddenY + (canvasHeight / 19.0) * 6;
+        this.hidden = options.hidden || true;
+        this.y = this.hidden ? this.hiddenY : this.shownY;
+    },
+    baseX: 0,
+    baseHeight: (canvasHeight / 19.0) * 6,
+    baseWidth: canvasWidth,
+    movementSpeed: 700.0 * canvasScale,
+    draw: function( ctx ){
+        // Draws the panel shape
+        ctx.fillStyle = this.color;
+        ctx.fillRect( this.baseX, this.y, this.baseWidth, this.baseHeight);
+    },
+    update: function( modifier, steps ){
+        var destY = this.hidden ? this.hiddenY : this.shownY;
+        
+        if( this.y != destY ) {
+            if( Math.abs( this.y - destY ) <= this.movementSpeed * modifier ) {
+                this.y = destY;
+            } else {
+                if( this.y < destY ){
+                    this.y += this.movementSpeed * modifier;
+                } else {
+                    this.y -= this.movementSpeed * modifier;
+                }
+            }
+        } 
     }
 })

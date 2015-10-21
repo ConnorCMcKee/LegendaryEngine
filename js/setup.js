@@ -68,7 +68,11 @@ var mastermind = null,      // Card of type Mastermind for the current game
 
 /* DISPLAY VARIABLES
 -------------------------------------------------- */
-var villainRowVisible = true,   // A boolean determining which top row is shown
+var schemePanel = null,         // The top Panel-type item
+    schemePanelVisible = false, // A boolean determining which top row is shown
+    playerPanel = null,         // The bottom Panel-type item
+    playerPanelVisible = false, // A boolean determining which bottom row is shown
+    playerPanelPlayerNumber = 0,// PLayers index of currently shown player's area
     selectedCard = null,        // The currently selected card
     selectedCardLocation = {},  // The true location (x, y, and scale) of the selected card
     controls = [];              // An array of all controls (buttons) for the game
@@ -310,6 +314,18 @@ var drawScheme = function( context ){
     scheme.draw(context);
 }
 
+// Draws the Scheme Panel
+var drawSchemePanel = function( context ){
+    // Draws the Scheme Panel
+    schemePanel.draw( context );
+    
+    // Draws the cards on the Scheme Panel
+    drawScheme( context );
+    drawEscapedVillains( context );
+    drawWounds( context );
+    drawBystanders( context );
+}
+
 // Draws the selected card
 var drawSelected = function( context ){
     // Forces the drawing of the selected card
@@ -334,7 +350,7 @@ var drawShieldOfficers = function( context ){
 var drawWounds = function( context ){
     // TODO make this logic smarter
     // Draws the second card down of the deck if the top is exposed
-    if( woundDeck.length > 1 && woundDeck[0].y != woundDeck[1].y )
+    if( woundDeck.length > 1 )
         woundDeck[1].draw( context );
     
     // Draws the top card of the deck
@@ -347,17 +363,14 @@ var drawActors = function( context ) {
     // Draws the background
     drawBackground( context );
     
-    if( villainRowVisible ){
-        // Draws the villain row
-        drawMastermind( context );
-        drawCity( context );
-    } else {
-        // Draws the scheme row
-        drawScheme( context );
-        drawEscapedVillains( context );
-        drawWounds( context );
-        drawBystanders( context );
-    }
+    // Draws the villain row
+    drawMastermind( context );
+    drawCity( context );
+    
+    // Draws the scheme row
+    //if( schemePanelVisible ){
+        drawSchemePanel( context );
+    //}
     
     // Draw the hero row
     drawShieldOfficers( context );
@@ -376,6 +389,18 @@ var drawActors = function( context ) {
 
 /* UPDATE FUNCTIONS
 -------------------------------------------------- */
+// Update Bystanders
+var updateBystanders = function( modifier, steps ){
+    // TODO make this logic smarter
+    // Updates the second card down of the deck if the top is exposed
+    if( bystanderDeck.length > 1 )
+        bystanderDeck[1].update( modifier, steps );
+    
+    // Draws the top card of the deck
+    if( bystanderDeck.length > 0 )
+        bystanderDeck[0].update( modifier, steps );
+}
+
 // Update City
 var updateCity = function( modifier, steps ){
     for( var i = 0; i < city.length; i++ ){
@@ -412,6 +437,22 @@ var updateMastermind = function( modifier, steps ){
     mastermind.update( modifier, steps );
 }
 
+// Update Scheme
+var updateScheme = function( modifier, steps ){
+    scheme.update( modifier, steps );
+}
+
+var updateSchemePanel = function( modifier, steps ){
+    // Draws the Scheme Panel
+    schemePanel.update( modifier, steps );
+    
+    // Draws the cards on the Scheme Panel
+    updateScheme( modifier, steps );
+    updateEscapedVillains( modifier, steps );
+    updateWounds( modifier, steps );
+    updateBystanders( modifier, steps );
+}
+
 // Update Shield Officers
 var updateShieldOfficers = function( modifier, steps ){
     // TODO determine if this effectively avoids the overprocessing done on the Escaped Villains Deck
@@ -422,10 +463,14 @@ var updateShieldOfficers = function( modifier, steps ){
 
 // Update Wounds
 var updateWounds = function( modifier, steps ){
-    // TODO determine if this effectively avoids the overprocessing done on the Escaped Villains Deck
-    if( woundDeck.length > 0 ){
+    // TODO make this logic smarter
+    // Updates the second card down of the deck if the top is exposed
+    if( woundDeck.length > 1 )
+        woundDeck[1].update( modifier, steps );
+    
+    // Draws the top card of the deck
+    if( woundDeck.length > 0 )
         woundDeck[0].update( modifier, steps );
-    }
 }
 
 // Update Actors
@@ -435,13 +480,14 @@ var updateActors = function( modifier, steps ) {
         eventQueue.shift().action();
     }
     
+    // Updates the Scheme Panel
+    updateSchemePanel( modifier, steps );
+    
     // Updates cards
     updateCity( modifier, steps );
-    updateEscapedVillains( modifier, steps );
     updateHeadquarters( modifier, steps );
     updateMastermind( modifier, steps );
     updateShieldOfficers( modifier, steps );
-    updateWounds( modifier, steps );
     players[(currentTurn % playerCount)].update( modifier, steps );
     
     // Updates controls

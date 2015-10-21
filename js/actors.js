@@ -81,7 +81,7 @@ villainDeck = [ new Villain( sampleVillainStats ),
                 new Villain( sampleVillainStats ) ];
 
 // Prepare the scheme
-scheme = new Scheme( { title: 'Do Bad Stuff', text: '...and lots of it.' } ).defineLocation(120, 140, 0.3);
+scheme = new Scheme( { title: 'Do Bad Stuff', text: '...and lots of it.' } ).defineLocation(120, -52, 0.3);
 
 // Prepare the Shield Officer Deck
 var shieldOfficerStats = { title: 'Shield Officer',
@@ -127,7 +127,7 @@ controls.push( new Control({
 
 // Play Selected Card from Hand button
 controls.push( new Control({
-    text: 'Show Hand',
+    text: 'Scheme Panel',
     width: 120,
     height: 50,
     x: 540,
@@ -141,12 +141,35 @@ controls.push( new Control({
         }
     },
     customClickAction: function(){
-        player = players[(currentTurn % playerCount)]
-        player.arrangeHand(!player.handOnScreen);
-        this.text = player.handOnScreen ? 'Hide Hand' : 'Show Hand';
+        if( schemePanel.hidden ){
+            schemePanel.hidden = false;
+            scheme.defineYDestination( 140 );
+            for( var i = 0; i < woundDeck.length; i++ ){
+                woundDeck[i].defineYDestination( 140 );
+            }
+            for( var i = 0; i < bystanderDeck.length; i++ ){
+                bystanderDeck[i].defineYDestination( 140 );
+            }
+        } else {
+            schemePanel.hidden = true;
+            scheme.defineYDestination( -52 );
+            for( var i = 0; i < woundDeck.length; i++ ){
+                woundDeck[i].defineYDestination( -52 );
+            }
+            for( var i = 0; i < bystanderDeck.length; i++ ){
+                bystanderDeck[i].defineYDestination( -52 );
+            }
+        }
     }
 }));
 
+
+/* PANEL ACTORS
+-------------------------------------------------- */
+// The scheme (top) panel
+schemePanel = new Panel({
+    hiddenY: ( canvasHeight / 19.0 ) * -5
+});
 
 
 /* QUEUED EVENTS VARIABLES

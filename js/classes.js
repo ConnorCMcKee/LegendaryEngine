@@ -72,64 +72,61 @@ var Card = Class.create({
         }
     },
     // Draws the card
-    draw: function(ctx, force){
-        // Waits to draw the card if it's selected
-        if( this != selectedCard || force ) {
-            // Draws the black border
-            ctx.fillStyle = 'Black';
-            ctx.fillRect(this.x-(this.baseWidth/2*this.scale), this.y-(this.baseHeight/2*this.scale), this.baseWidth*this.scale, this.baseHeight*this.scale);
+    draw: function(ctx){
+        // Draws the black border
+        ctx.fillStyle = 'Black';
+        ctx.fillRect(this.x-(this.baseWidth/2*this.scale), this.y-(this.baseHeight/2*this.scale), this.baseWidth*this.scale, this.baseHeight*this.scale);
 
-            // If the card is being rendered face UP
-            if( !this.faceDown ){
+        // If the card is being rendered face UP
+        if( !this.faceDown ){
 
-                // Determines the correct color for the card's background
-                if( this.colors.length < 2 ) {
-                    // Monochromatic fill
-                    ctx.fillStyle = this.colors[0];
-                } else {
-                    // Gradient fill
-                    var gradient = ctx.createLinearGradient(0, this.y-(this.baseHeight/2*this.scale), 0, this.y+(this.baseHeight/2*this.scale));
-                    for( var i = 0; i < this.colors.length; i++ ){
-                        gradient.addColorStop(i, this.colors[i]);
-                    }
-                    ctx.fillStyle=gradient;
-                }
-
-                // Draws the card's background
-                ctx.fillRect(this.x-(this.baseWidth/2*this.scale*0.95), this.y-(this.baseHeight/2*this.scale*0.96), this.baseWidth*this.scale*0.95, this.baseHeight*this.scale*0.96);
-
-                // Card title
-                ctx.fillStyle = 'White';
-                ctx.textBaseline = 'middle';
-                ctx.textAlign = 'center';
-                ctx.font = 30*this.scale*canvasScale + "px Helvetica";
-                ctx.fillText( this.title, this.x, this.y-(this.baseHeight/2*this.scale*0.88), (this.baseWidth*this.scale*0.85) );
-
-                // Card subtitle
-                ctx.font = 22*this.scale*canvasScale + "px Helvitca";
-                ctx.fillText( this.subtitle, this.x, this.y-(this.baseHeight/2*this.scale*0.78), (this.baseWidth*this.scale*0.85) );
-
-                // Card image (if ready)
-                if (resourceReady(this.image)) {
-                    ctx.drawImage(resourceImage(this.image), this.x-(this.baseWidth/2*this.scale*0.85), this.y-(this.baseHeight/2*this.scale*0.7), this.baseWidth*this.scale*0.85, this.baseHeight*this.scale*0.425 );
-                }
-
-                // Text  area
-                ctx.fillStyle = 'White';
-                ctx.fillRect(this.x-(this.baseWidth/2*this.scale*0.85), this.y+(this.baseHeight/2*this.scale*0.2), this.baseWidth*this.scale*0.85, this.baseHeight*this.scale*0.35);
-
-                // Card text TODO support multi-line
-                ctx.fillStyle = 'Black';
-                ctx.textBaseline = 'top';
-                ctx.textAlign = 'left';
-                ctx.fillText( this.text, this.x-(this.baseWidth/2*this.scale*0.65), this.y+(this.baseHeight/2*this.scale*0.2), this.baseWidth*this.scale*0.75 );
-
-            // If the card is being rendered face DOWN
+            // Determines the correct color for the card's background
+            if( this.colors.length < 2 ) {
+                // Monochromatic fill
+                ctx.fillStyle = this.colors[0];
             } else {
-                // Draws the card's background
-                if (resourceReady(this.image)) {
-                    ctx.drawImage(resourceImage('cardBack'), this.x-(this.baseWidth/2*this.scale*0.95), this.y-(this.baseHeight/2*this.scale*0.96), this.baseWidth*this.scale*0.95, this.baseHeight*this.scale*0.96 );
+                // Gradient fill
+                var gradient = ctx.createLinearGradient(0, this.y-(this.baseHeight/2*this.scale), 0, this.y+(this.baseHeight/2*this.scale));
+                for( var i = 0; i < this.colors.length; i++ ){
+                    gradient.addColorStop(i, this.colors[i]);
                 }
+                ctx.fillStyle=gradient;
+            }
+
+            // Draws the card's background
+            ctx.fillRect(this.x-(this.baseWidth/2*this.scale*0.95), this.y-(this.baseHeight/2*this.scale*0.96), this.baseWidth*this.scale*0.95, this.baseHeight*this.scale*0.96);
+
+            // Card title
+            ctx.fillStyle = 'White';
+            ctx.textBaseline = 'middle';
+            ctx.textAlign = 'center';
+            ctx.font = 30*this.scale*canvasScale + "px Helvetica";
+            ctx.fillText( this.title, this.x, this.y-(this.baseHeight/2*this.scale*0.88), (this.baseWidth*this.scale*0.85) );
+
+            // Card subtitle
+            ctx.font = 22*this.scale*canvasScale + "px Helvitca";
+            ctx.fillText( this.subtitle, this.x, this.y-(this.baseHeight/2*this.scale*0.78), (this.baseWidth*this.scale*0.85) );
+
+            // Card image (if ready)
+            if (resourceReady(this.image)) {
+                ctx.drawImage(resourceImage(this.image), this.x-(this.baseWidth/2*this.scale*0.85), this.y-(this.baseHeight/2*this.scale*0.7), this.baseWidth*this.scale*0.85, this.baseHeight*this.scale*0.425 );
+            }
+
+            // Text  area
+            ctx.fillStyle = 'White';
+            ctx.fillRect(this.x-(this.baseWidth/2*this.scale*0.85), this.y+(this.baseHeight/2*this.scale*0.2), this.baseWidth*this.scale*0.85, this.baseHeight*this.scale*0.35);
+
+            // Card text TODO support multi-line
+            ctx.fillStyle = 'Black';
+            ctx.textBaseline = 'top';
+            ctx.textAlign = 'left';
+            ctx.fillText( this.text, this.x-(this.baseWidth/2*this.scale*0.65), this.y+(this.baseHeight/2*this.scale*0.2), this.baseWidth*this.scale*0.75 );
+
+        // If the card is being rendered face DOWN
+        } else {
+            // Draws the card's background
+            if (resourceReady(this.image)) {
+                ctx.drawImage(resourceImage('cardBack'), this.x-(this.baseWidth/2*this.scale*0.95), this.y-(this.baseHeight/2*this.scale*0.96), this.baseWidth*this.scale*0.95, this.baseHeight*this.scale*0.96 );
             }
         }
             
@@ -231,6 +228,22 @@ var Hero = Class.create(Card, {
     },
     play: function() {
         this.customPlay( this );
+    },
+    draw: function( $super, context, force ) {
+        $super( context, force );
+        
+        // If the card is being rendered face UP
+        if( !this.faceDown ){
+            // Draws attack symbol and number
+            if (this.baseAttack != 0 && resourceReady('symbolAttack')) {
+                ctx.drawImage(resourceImage('symbolAttack'), this.x-this.baseWidth*this.scale*0.45, this.y+this.baseHeight*this.scale*0.15, this.baseWidth*this.scale*0.12, this.baseWidth*this.scale*0.12 );
+            }
+
+            // Draws resource symbol and number
+            if (this.baseResource != 0 && resourceReady('symbolResource')) {
+                ctx.drawImage(resourceImage('symbolResource'), this.x-this.baseWidth*this.scale*0.45, this.y+this.baseHeight*this.scale*0.27, this.baseWidth*this.scale*0.12, this.baseWidth*this.scale*0.12 );
+            }
+        }
     }
 });
 

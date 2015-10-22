@@ -28,7 +28,7 @@ var resourceReady = function( name ) {
 
 
 
-/* RECOURCE DECLARATIONS
+/* RESOURCE DECLARATIONS
 -------------------------------------------------- */
 // Background
 addResource( 'background', 'common/background.jpg' );
@@ -36,3 +36,6 @@ addResource( 'background', 'common/background.jpg' );
 addResource( 'frame', 'common/frame.png' );
 // Card Back
 addResource( 'cardBack', 'common/cardBack.jpg' );
+// Symbols
+addResource( 'symbolAttack', 'common/symbolAttack.png' );
+addResource( 'symbolResource', 'common/symbolResource.png' );

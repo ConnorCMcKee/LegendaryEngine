@@ -20,6 +20,8 @@ function canvasClick(event)
     if( selectedCard == null ) {
         // Build an array of all visible cards
         var visibleCards = [];
+        // Current player
+        var player = players[(currentTurn % playerCount )]
         
         // Hero Row cards (always visible when present)
         visibleCards = visibleCards.concat( headquarters.filter( function(n){ return n != null }) );
@@ -36,9 +38,15 @@ function canvasClick(event)
             visibleCards.push( woundDeck[0] );
         }
         
-        // Player hand (visible if Player Panel is hidden)
-        // TODO Player Panel
-            visibleCards = visibleCards.concat( players[(currentTurn % playerCount)].hand );
+        // Player Hand (visible if Player Panel is hidden)
+        if( playerPanel.hidden ){
+            visibleCards = visibleCards.concat( player.hand );
+        } else {
+            visibleCards.push( player.discardPile[0] );
+            visibleCards.push( player.victoryPile[0] );
+            visibleCards.push( playedCards[0] );
+        }
+            
         
         // Iterate through the array, looking for a card containing the mouseclick
         for( var i = 0; i < visibleCards.length; i++ ){

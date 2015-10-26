@@ -41,6 +41,11 @@ heroDeck = [ new Hero( sampleHeroStats ),
 
 heroDeck[0].colors = ['Red','Green']; // This is simply to test gradients on cards
 
+// Prepare Headquarters
+for( var i = 0; i < 5; i++ ){
+    drawFromHeroDeck();
+}
+
 //  Mastermind (and Mastermind Deck)
 mastermind = new Mastermind( { title: 'Magneto',
                                text: 'A wizard is never late...',
@@ -56,10 +61,10 @@ var sampleMastermindTacticStats = { title: 'First Tactic!',
                                     baseScore: mastermind.baseScore,
                                     baseStrength: mastermind.baseStrength };
 
-mastermindDeck = [ new Villain( sampleMastermindTacticStats).defineLocation( X_POSITIONS[1]-40, VILLAIN_ROW_Y, 0.3 ),
-                   new Villain( sampleMastermindTacticStats).defineLocation( X_POSITIONS[1]-30, VILLAIN_ROW_Y, 0.3 ),
+mastermindDeck = [ new Villain( sampleMastermindTacticStats).defineLocation( X_POSITIONS[1]-10, VILLAIN_ROW_Y, 0.3 ),
                    new Villain( sampleMastermindTacticStats).defineLocation( X_POSITIONS[1]-20, VILLAIN_ROW_Y, 0.3 ),
-                   new Villain( sampleMastermindTacticStats).defineLocation( X_POSITIONS[1]-10, VILLAIN_ROW_Y, 0.3 ) ];
+                   new Villain( sampleMastermindTacticStats).defineLocation( X_POSITIONS[1]-30, VILLAIN_ROW_Y, 0.3 ),
+                   new Villain( sampleMastermindTacticStats).defineLocation( X_POSITIONS[1]-40, VILLAIN_ROW_Y, 0.3 ) ];
 
 // Scheme
 scheme = new Scheme( { title: 'Do Bad Stuff', text: '...and lots of it.' } );
@@ -112,6 +117,101 @@ controls.push( new Control({
         } else {
             return false;
         }
+    },
+    customClickAction: function(){
+        var toRemove = selectedCard;
+        deselectCard();
+        toRemove.play();
+        players[(currentTurn % playerCount)].removeCardByObject( toRemove, 'play' );
+    }
+}));
+
+// Buy Selected Card from Headquarters button
+controls.push( new Control({
+    text: 'Buy Card',
+    width: 100,
+    height: 70,
+    x: 800,
+    y: 300,
+    visible: false,
+    showCondition: function(){
+        if( selectedCard != null && ( headquarters.indexOf( selectedCard ) >= 0 || selectedCard == shieldOfficersDeck[0] ) && selectedCard.atLocation(540,300,1) ){
+            return true;
+        } else {
+            return false;
+        }
+    },
+    enableCondition: function(){
+        if( selectedCard != null && selectedCard.cost() <= resourcePool ) {
+            return true;
+        } else {
+            return false;
+        }
+    },
+    customClickAction: function(){
+        // The buying player's discard pile
+        var discardPile = players[(currentTurn % playerCount)].discardPile;
+        // The cost of the card
+        var cost = selectedCard.cost();
+        
+        if (selectedCard == shieldOfficersDeck[0] ) {
+            discardPile.unshift( shieldOfficersDeck.shift() );
+        } else {
+            // THe index of the selected card in headquarters
+            var index = headquarters.indexOf( selectedCard );
+            // Puts the selected card into the player's discard pile
+            discardPile.unshift( headquarters.splice( index, 1)[0]);
+            // Puts null (as opposed to undefined) back into headquarters
+            headquarters.push( null );
+        }
+        // Deselects the selected card
+        deselectCard();
+        // Sets the destination of the purchased cards
+        discardPile[0].defineDestination( X_POSITIONS[6], PLAYER_ROW_Y, 0.3 )
+        // Deducts the cost of the purchased card
+        resourcePool -= cost;
+        // Resets the headquarters
+        drawFromHeroDeck();
+    }
+}));
+
+// Fight Selected Card in City button
+controls.push( new Control({
+    text: 'Fight!',
+    width: 100,
+    height: 70,
+    x: 800,
+    y: 300,
+    visible: false,
+    showCondition: function(){
+        if( selectedCard != null && ( city.indexOf( selectedCard ) >= 0 || selectedCard == mastermind ) && selectedCard.atLocation(540,300,1) ){
+            return true;
+        } else {
+            return false;
+        }
+    },
+    enableCondition: function(){
+        if( selectedCard.strength() <= attackPool ){
+            return true;
+        } else {
+            return false;
+        }
+    },
+    customClickAction: function(){
+        // The fighting player's victory pile
+        var victoryPile = players[(currentTurn % playerCount)].victoryPile;
+        // The strengh of the card
+        var strength = selectedCard.strength();
+        
+        if (selectedCard == mastermind) {
+            victoryPile.unshift( mastermindDeck.pop().flip() );
+            victoryPile[0].defineDestination( X_POSITIONS[7], PLAYER_ROW_Y, 0.3 );
+            selectCard( victoryPile[0] );
+        } else {
+            
+        }
+        
+        attackPool -= strength;
     }
 }));
 
@@ -134,6 +234,10 @@ controls.push( new Control({
         var player = players[(currentTurn % playerCount)];
         
         if( playerPanel.hidden ){
+            // Moves the played cards
+            for (var i = 0; i < playedCards.length; i++ ){
+                playedCards[i].defineYDestination( HAND_ROW_Y );
+            }
             // Moves the player deck
             for (var i = 0; i < player.drawDeck.length; i++ ){
                 player.drawDeck[i].defineYDestination( HAND_ROW_Y );
@@ -142,7 +246,15 @@ controls.push( new Control({
             for (var i = 0; i < player.discardPile.length; i++ ){
                 player.discardPile[i].defineYDestination( HAND_ROW_Y );
             }
+            // Moves the player victory pile
+            for (var i = 0; i < player.victoryPile.length; i++ ){
+                player.victoryPile[i].defineYDestination( HAND_ROW_Y );
+            }
         } else {
+            // Moves the played cards
+            for (var i = 0; i < playedCards.length; i++ ){
+                playedCards[i].defineYDestination( PLAYER_ROW_Y );
+            }
             // Moves the player deck
             for (var i = 0; i < player.drawDeck.length; i++ ){
                 player.drawDeck[i].defineYDestination( PLAYER_ROW_Y );
@@ -150,6 +262,10 @@ controls.push( new Control({
             // Moves the player discard
             for (var i = 0; i < player.discardPile.length; i++ ){
                 player.discardPile[i].defineYDestination( PLAYER_ROW_Y );
+            }
+            // Moves the player victory pile
+            for (var i = 0; i < player.victoryPile.length; i++ ){
+                player.victoryPile[i].defineYDestination( PLAYER_ROW_Y );
             }
         }
         
@@ -236,13 +352,5 @@ for( var i = 0; i < playerCount; i++ ){
 
 /* QUEUED EVENTS VARIABLES
 -------------------------------------------------- */
-// Prepare Headquarters
-for( var i = 0; i < 5; i++ ){
-    (function (iCopy) {
-        var x = function(){ headquarters[iCopy] = heroDeck.shift().flip().defineDestination((iCopy*135)+337.5, 332, 0.3) };
-        addToEventQueue( iCopy*60, x );
-    }(i));
-}
-
 // Prepare City
-addToEventQueue( 300, drawFromVillainDeck );
+addToEventQueue( 150, drawFromVillainDeck );

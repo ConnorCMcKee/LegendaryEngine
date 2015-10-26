@@ -66,9 +66,8 @@ var baseMasterStrike = function(){
 /* PLAY FUNCTIONS
 -------------------------------------------------- */
 var basePlay = function( card ){
-    card.customAttack( card );
-    card.customResource( card );
-    return;
+    attackPool += card.attack();
+    resourcePool += card.resource();
 }
 
 

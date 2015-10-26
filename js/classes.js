@@ -87,9 +87,10 @@ var Card = Class.create({
             } else {
                 // Gradient fill
                 var gradient = ctx.createLinearGradient(0, this.y-(this.baseHeight/2*this.scale), 0, this.y+(this.baseHeight/2*this.scale));
-                for( var i = 0; i < this.colors.length; i++ ){
-                    gradient.addColorStop(i, this.colors[i]);
-                }
+ 
+                gradient.addColorStop(0.3, this.colors[0]);
+                gradient.addColorStop(0.7, this.colors[1]);
+
                 ctx.fillStyle=gradient;
             }
 
@@ -229,19 +230,51 @@ var Hero = Class.create(Card, {
     play: function() {
         this.customPlay( this );
     },
-    draw: function( $super, context, force ) {
-        $super( context, force );
+    draw: function( $super, context ) {
+        $super( context );
         
         // If the card is being rendered face UP
         if( !this.faceDown ){
             // Draws attack symbol and number
             if (this.baseAttack != 0 && resourceReady('symbolAttack')) {
-                ctx.drawImage(resourceImage('symbolAttack'), this.x-this.baseWidth*this.scale*0.45, this.y+this.baseHeight*this.scale*0.15, this.baseWidth*this.scale*0.12, this.baseWidth*this.scale*0.12 );
+                // Draws the image
+                ctx.drawImage(resourceImage('symbolAttack'), this.x-this.baseWidth*this.scale*0.45, this.y+this.baseHeight*this.scale*0.15, this.baseWidth*this.scale*0.1, this.baseWidth*this.scale*0.1 );
+                
+                // Draws the value
+                ctx.fillStyle = 'black';
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center';
+                ctx.font = "bold " + 40*this.scale*canvasScale + "px Helvetica";
+                ctx.fillText( this.attack(), this.x-this.baseWidth*this.scale*0.39, this.y+this.baseHeight*this.scale*0.14 );
             }
 
             // Draws resource symbol and number
             if (this.baseResource != 0 && resourceReady('symbolResource')) {
-                ctx.drawImage(resourceImage('symbolResource'), this.x-this.baseWidth*this.scale*0.45, this.y+this.baseHeight*this.scale*0.27, this.baseWidth*this.scale*0.12, this.baseWidth*this.scale*0.12 );
+                // Draws the image
+                ctx.drawImage(resourceImage('symbolResource'), this.x-this.baseWidth*this.scale*0.45, this.y+this.baseHeight*this.scale*0.3, this.baseWidth*this.scale*0.12, this.baseWidth*this.scale*0.12 );
+                
+                // Draws the value
+                ctx.fillStyle = 'black';
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center';
+                ctx.font = "bold " + 40*this.scale*canvasScale + "px Helvetica";
+                ctx.fillText( this.resource(), this.x-this.baseWidth*this.scale*0.39, this.y+this.baseHeight*this.scale*0.31 );
+            }
+            
+            // Draws the cost symbol and number
+            if (this.baseCost != 0 ) {
+                // Draws the circle
+                context.beginPath();
+                context.arc(this.x+this.baseWidth*this.scale*0.38, this.y+this.baseHeight*this.scale*0.41, 30 * canvasScale * this.scale, 0, 2 * Math.PI, false);
+                context.fillStyle = 'gold';
+                context.fill();
+                
+                // Draws the value
+                ctx.fillStyle = 'black';
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center';
+                ctx.font = "bold " + 35*this.scale*canvasScale + "px Helvetica";
+                ctx.fillText( this.cost(), this.x+this.baseWidth*this.scale*0.38, this.y+this.baseHeight*this.scale*0.41 );
             }
         }
     }
@@ -273,6 +306,25 @@ var Mastermind = Class.create(Card, {
     },
     strength: function() {
         return this.getStrength( this );
+    },
+    draw: function($super, context){
+        $super( context );
+        
+        // If the card is being rendered face UP
+        if( !this.faceDown ){
+            // Draws attack symbol and number
+            if (this.baseStrength != 0 && resourceReady('symbolAttack')) {
+                // Draws the image
+                ctx.drawImage(resourceImage('symbolAttack'), this.x+this.baseWidth*this.scale*0.34, this.y+this.baseHeight*this.scale*0.38, this.baseWidth*this.scale*0.1, this.baseWidth*this.scale*0.1 );
+                
+                // Draws the value
+                ctx.fillStyle = 'black';
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center';
+                ctx.font = "bold " + 40*this.scale*canvasScale + "px Helvetica";
+                ctx.fillText( this.strength(), this.x+this.baseWidth*this.scale*0.39, this.y+this.baseHeight*this.scale*0.37 );
+            }
+        }
     }
 });
 
@@ -334,6 +386,25 @@ var Villain = Class.create(Card, {
     },
     strength: function() {
         return this.getStrength( this );
+    },
+    draw: function($super, context){
+        $super( context );
+        
+        // If the card is being rendered face UP
+        if( !this.faceDown ){
+            // Draws attack symbol and number
+            if (this.baseStrength != 0 && resourceReady('symbolAttack')) {
+                // Draws the image
+                ctx.drawImage(resourceImage('symbolAttack'), this.x+this.baseWidth*this.scale*0.34, this.y+this.baseHeight*this.scale*0.38, this.baseWidth*this.scale*0.1, this.baseWidth*this.scale*0.1 );
+                
+                // Draws the value
+                ctx.fillStyle = 'black';
+                ctx.textBaseline = 'middle';
+                ctx.textAlign = 'center';
+                ctx.font = "bold " + 40*this.scale*canvasScale + "px Helvetica";
+                ctx.fillText( this.strength(), this.x+this.baseWidth*this.scale*0.39, this.y+this.baseHeight*this.scale*0.37 );
+            }
+        }
     }
 });
 
@@ -379,18 +450,40 @@ var Player = Class.create({
         this.victoryPile = [],
         this.artifacts = [];
     },
-    discardByIndex: function( index ){
+    removeCardByIndex: function( index, destination ){
+        // The new location of the card
+        var destinationArray,
+            destinationX,
+            destinationY;
+        // Switch to choose the new location
+        switch (destination.toLowerCase()){
+            case 'discard':
+                destinationArray = this.discardPile;
+                destinationX = X_POSITIONS[6];
+                destinationY = PLAYER_ROW_Y;
+                break;
+            case 'ko':
+                destinationArray = knockedOut;
+                destinationX = X_POSITIONS[6];
+                destinationY = SCHEME_ROW_Y;
+                break;
+            case 'play':
+                destinationArray = playedCards;
+                destinationX = X_POSITIONS[0];
+                destinationY = PLAYER_ROW_Y;
+                break;
+        }
         // Moves the card at hand[index] to discardPile[0]
-        this.discardPile.unshift( this.hand.splice( index, 1)[0] );
+        destinationArray.unshift( this.hand.splice( index, 1)[0] );
         // Rearranges hand for the new number of cards
         this.arrangeHand();
         // Returns the deleted card
-        return this.discardPile[0].defineDestination( X_POSITIONS[6], PLAYER_ROW_Y, 0.3 );
+        return destinationArray[0].defineDestination( destinationX, destinationY, 0.3 );
     },
-    discardByObject: function( card ){
-        index = this.hand.indexOf( card );
+    removeCardByObject: function( card, destination ){
+        var index = this.hand.indexOf( card );
         if( index >= 0 ){
-            this.discardByIndex( index );
+            this.removeCardByIndex( index, destination );
             return true;
         } else {
             return false;
@@ -420,14 +513,22 @@ var Player = Class.create({
             this.hand[i].defineDestination( i*(1080/this.hand.length)+(1080/this.hand.length)/2, HAND_ROW_Y, 0.3 );
         }
     },
-    playFromHand(){
-        
+    playByIndex: function( index ){
+        // Moves the card at hand[index] to playedCards[0]
+        playedCards.unshift( this.hand.splice( index, 1)[0] );
+        // Rearranges hand for the new number of cards
+        this.arrangeHand();
+        // Returns the played card
+        return playedCards[0].defineDestination( X_POSITIONS[1], PLAYER_ROW_Y, 0.3 );
     },
-    buyFromHQ(){
-        
-    },
-    fightVillain(){
-        
+    playByObject: function( card ){
+        index = this.hand.indexOf( card );
+        if( index >= 0 ){
+            this.playByIndex( index );
+            return true;
+        } else {
+            return false;
+        }
     },
     draw: function( ctx ){
         for( var i = 0; i < this.hand.length; i++ ){

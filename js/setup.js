@@ -70,7 +70,7 @@ var mastermind = null,      // Card of type Mastermind for the current game
 -------------------------------------------------- */
 var schemePanel = null,         // The top Panel-type item
     playerPanel = null,         // The bottom Panel-type item
-    playerPanelPlayerNumber = 0,// PLayers index of currently shown player's area
+    playerPanelPlayerNumber = 0,// Index of currently shown player's area
     selectedCard = null,        // The currently selected card
     selectedCardLocation = {},  // The true location (x, y, and scale) of the selected card
     controls = [];              // An array of all controls (buttons) for the game
@@ -127,6 +127,33 @@ function addToEventQueue( step, action ) {
 
 /* GAMEPLAY FUNCTIONS
 -------------------------------------------------- */
+// Draws a card from the hero deck and responds accordingly
+function drawFromHeroDeck() {
+    // Appropriately positions the new hero
+    switch( headquarters.indexOf(null) ) {
+        case 4:
+            headquarters[4] = headquarters[3];
+        case 3:
+            headquarters[3] = headquarters[2];
+        case 2:
+            headquarters[2] = headquarters[1];
+        case 1:
+            headquarters[1] = headquarters[0];
+        case 0:
+            headquarters[0] = heroDeck.shift().flip();
+            break;
+    }
+    // Updates the destination(s) of villains
+    for( var i = 0; i < 5; i++ ){
+        var xPos = X_POSITIONS[(4-i)+2];
+        if( headquarters[i] != null && headquarters[i].x != xPos ) {
+            headquarters[i].defineDestination(xPos, HERO_ROW_Y, 0.3);
+        }
+    }
+
+    return;
+}
+
 // Draws a card from the villain deck and responds accordingly
 function drawFromVillainDeck() {
     if( villainDeck[0].cardType === 'Villain' ) {
@@ -252,6 +279,18 @@ var drawControls = function( context ){
     // Draws the foreground stats and controls bar
     ctx.fillStyle = '#737373';
     ctx.fillRect( 0, 0, canvasWidth, canvasHeight / 19 );
+
+    // Draws current turn info
+    ctx.fillStyle = "White";
+    ctx.font = (12 * canvasScale) +"px Helvetica";
+    ctx.textAlign = "left";
+    ctx.textBaseline = "middle";
+    ctx.fillText("Player " + (currentTurn % playerCount + 1), 260*canvasScale, 9*canvasScale);
+    ctx.fillText("Turn " + (currentTurn / playerCount), 260*canvasScale, 24*canvasScale);
+    
+    // Draws current resource and attack pools
+    ctx.fillText(attackPool + " Available Attack(s)", 350*canvasScale, 9 * canvasScale)
+    ctx.fillText(resourcePool + " Available Resource(s)", 350*canvasScale, 24 * canvasScale)
     
     // Draws controls themselves
     for( var i = 0; i < controls.length; i++ ){
@@ -294,13 +333,24 @@ var drawHeadquarters = function( context ){
 
 // Draws the Mastermind
 var drawMastermind = function( context ){
-    // Draws the mastermind tactics cards
-    for( var i = 0; i < mastermindDeck.length; i++ ){
-        mastermindDeck[i].draw( context );
+    // Draws the mastermind tactics cards (backwards, for drawing purposes)
+    for( var i = mastermindDeck.length; i > 0; i-- ){
+        mastermindDeck[i-1].draw( context );
     }
     
     // Draws the mastermind
     mastermind.draw(context);
+}
+
+// Draws the Player Discard
+var drawPlayedCards = function( context ){
+    
+    if( playedCards.length > 1 )
+        playedCards[1].draw( context );
+    
+    // Draws the top card of the deck
+    if( playedCards.length > 0 )
+        playedCards[0].draw( context );
 }
 
 // Draws the Player Deck
@@ -327,14 +377,28 @@ var drawPlayerDiscard = function( context ){
         playerDiscard[0].draw( context );
 }
 
+// Draws the Player Victory Pile
+var drawPlayerVictory = function( context ){
+    var playerVictory = players[(currentTurn % playerCount)].victoryPile;
+    
+    if( playerVictory.length > 1 )
+        playerVictory[1].draw( context );
+    
+    // Draws the top card of the deck
+    if( playerVictory.length > 0 )
+        playerVictory[0].draw( context );
+}
+
 // Draws the Player Panel
 var drawPlayerPanel = function( context ){
     // Draws the Player Panel
     playerPanel.draw( context );
     
     // Draws the cards on the Player Panel
+    drawPlayedCards(context);
     drawPlayerDeck(context);
     drawPlayerDiscard( context );
+    drawPlayerVictory( context );
 }
 
 // Draws the Scheme
@@ -466,6 +530,16 @@ var updateMastermind = function( modifier, steps ){
     mastermind.update( modifier, steps );
 }
 
+// Updates the Played Cards array
+var updatePlayedCards = function( modifier, steps ){
+    if( playedCards.length > 1 )
+        playedCards[1].update( modifier, steps );
+    
+    // Draws the top card of the deck
+    if( playedCards.length > 0 )
+        playedCards[0].update( modifier, steps );
+}
+
 // Updates the Player Deck
 var updatePlayerDeck = function( modifier, steps ){
     var playerDeck = players[(currentTurn % playerCount)].drawDeck;
@@ -490,14 +564,28 @@ var updatePlayerDiscard = function( modifier, steps ){
         playerDiscard[0].update( modifier, steps );
 }
 
+// Updates the Player Victory Pile
+var updatePlayerVictory = function( modifier, steps ){
+    var victoryPile = players[(currentTurn % playerCount)].victoryPile;
+    
+    if( victoryPile.length > 1 )
+        victoryPile[1].update( modifier, steps );
+    
+    // Draws the top card of the deck
+    if( victoryPile.length > 0 )
+        victoryPile[0].update( modifier, steps );
+}
+
 // Update Player Panel
 var updatePlayerPanel = function( modifier, steps ){
     // Draws the Player Panel
     playerPanel.update( modifier, steps );
     
     // Draws the cards on the Player Panel
+    updatePlayedCards( modifier, steps );
     updatePlayerDeck( modifier, steps );
     updatePlayerDiscard( modifier, steps );
+    updatePlayerVictory( modifier, steps );
 }
 
 // Update Scheme

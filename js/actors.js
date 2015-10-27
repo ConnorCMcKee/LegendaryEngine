@@ -19,27 +19,62 @@ bystanderDeck = [ new Bystander( sampleBystanderStats ),
                   new Bystander( sampleBystanderStats ) ];
 
 // Hero Deck
-var sampleHeroStats = { title: 'Silent Sniper',
-                        subtitle: 'Black Widow',
-                        text: 'This is test text',
-                        team: 'Avengers',
-                        faceDown: true,
-                        colors: ['Red'],
-                        baseCost: 7,
-                        baseAttack: 3 };
+var heroStats = [];
 
-heroDeck = [ new Hero( sampleHeroStats ),
-             new Hero( sampleHeroStats ),
-             new Hero( sampleHeroStats ),
-             new Hero( sampleHeroStats ),
-             new Hero( sampleHeroStats ),
-             new Hero( sampleHeroStats ),
-             new Hero( sampleHeroStats ),
-             new Hero( sampleHeroStats ),
-             new Hero( sampleHeroStats ),
-             new Hero( sampleHeroStats ) ];
+heroStats.push( {title: 'Perfect Teamwork',
+                 hero: 'Captain America',
+                 text: '+1 attack per color you have',
+                 team: 'Avengers',
+                 colors: ['green'],
+                 baseCost: 4,
+                 baseAttack: 0,
+                 customGetAttack: perfectTeamworkAttack})
 
-heroDeck[0].colors = ['Red','Green']; // This is simply to test gradients on cards
+heroStats.push( {title: 'Diving Block',
+                 hero: 'Captain America',
+                 text: 'Reveal to block a wound',
+                 team: 'Avengers',
+                 colors: ['black'],
+                 baseCost: 6,
+                 baseAttack: 4})
+
+heroStats.push( {title: 'Avengers Assemble!',
+                 hero: 'Captain America',
+                 text: '+1 resource per color you have',
+                 team: 'Avengers',
+                 colors: ['gold'],
+                 baseCost: 3,
+                 baseResource: 0,
+                 customGetResource: avengersAssembleResource})
+
+heroStats.push( {title: 'A Day Unlike Any Other',
+                 hero: 'Captain America',
+                 text: '+3 attack per other Avenger',
+                 team: 'Avengers',
+                 colors: ['red'],
+                 baseCost: 7,
+                 baseAttack: 3,
+                 customGetAttack: aDayUnlikeAnyOtherAttack})
+
+heroDeck = [ new Hero( heroStats[0] ),
+             new Hero( heroStats[0] ),
+             new Hero( heroStats[0] ),
+             new Hero( heroStats[0] ),
+             new Hero( heroStats[0] ),
+             new Hero( heroStats[1] ),
+             new Hero( heroStats[1] ),
+             new Hero( heroStats[1] ),
+             new Hero( heroStats[2] ),
+             new Hero( heroStats[2] ),
+             new Hero( heroStats[2] ),
+             new Hero( heroStats[2] ),
+             new Hero( heroStats[2] ),
+             new Hero( heroStats[3] ) ];
+
+for( var i = 0; i < heroDeck.length; i++ )
+    heroDeck[i].flip();
+
+shuffle( heroDeck );
 
 // Prepare Headquarters
 for( var i = 0; i < 5; i++ ){
@@ -112,7 +147,7 @@ controls.push( new Control({
     y: 300,
     visible: false,
     showCondition: function(){
-        if( selectedCard != null && players[(currentTurn % playerCount)].hand.indexOf( selectedCard ) >= 0 && selectedCard.atLocation(540,300,1) ){
+        if( selectedCard != null && players[(currentTurn % playerCount)].hand.indexOf( selectedCard ) >= 0 && selectedCard.atDestination() ){
             return true;
         } else {
             return false;
@@ -135,7 +170,7 @@ controls.push( new Control({
     y: 300,
     visible: false,
     showCondition: function(){
-        if( selectedCard != null && ( headquarters.indexOf( selectedCard ) >= 0 || selectedCard == shieldOfficersDeck[0] ) && selectedCard.atLocation(540,300,1) ){
+        if( selectedCard != null && ( headquarters.indexOf( selectedCard ) >= 0 || selectedCard == shieldOfficersDeck[0] ) && selectedCard.atDestination() ){
             return true;
         } else {
             return false;
@@ -184,7 +219,7 @@ controls.push( new Control({
     y: 300,
     visible: false,
     showCondition: function(){
-        if( selectedCard != null && ( city.indexOf( selectedCard ) >= 0 || selectedCard == mastermind ) && selectedCard.atLocation(540,300,1) ){
+        if( selectedCard != null && ( city.indexOf( selectedCard ) >= 0 || selectedCard == mastermind ) && selectedCard.atDestination() ){
             return true;
         } else {
             return false;

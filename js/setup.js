@@ -72,7 +72,9 @@ var schemePanel = null,         // The top Panel-type item
     playerPanel = null,         // The bottom Panel-type item
     playerPanelPlayerNumber = 0,// Index of currently shown player's area
     selectedCard = null,        // The currently selected card
+    deselectedCards = [],       // An array of recently deselected cards (to be shown in the foreground as they return to their position)
     selectedCardLocation = {},  // The true location (x, y, and scale) of the selected card
+    transitionalCards = [],     // Cards not traditionally drawn/updated that must be animated
     controls = [];              // An array of all controls (buttons) for the game
 
 
@@ -172,7 +174,6 @@ function drawFromVillainDeck() {
                 city[1] = city[0];
             case 0:
                 city[0] = villainDeck.shift().flip();
-                // TODO villain ambush
                 break;
         }
         // Updates the destination(s) of villains
@@ -182,6 +183,8 @@ function drawFromVillainDeck() {
                 city[i].defineDestination(xPos, VILLAIN_ROW_Y, 0.3);
             }
         }
+        // Selects the new villain
+        selectCard(city[0]);
     } else {
         alert( 'NOT a villain' );   // TODO handle cards
     }
@@ -192,7 +195,7 @@ function drawFromVillainDeck() {
 function selectCard( card ) {
     // Forces the deselection of currently selected card, if applicable
     if( selectedCard != null )
-        deselectCard( true );
+        deselectCard();
     
     // Stores the location from which the selected card came
     selectedCardLocation = { x: card.destX / canvasScale,
@@ -208,29 +211,84 @@ function selectCard( card ) {
 }
 
 // Sets the selected card to NULL, and returns the cards to its true location
-function deselectCard( force ) {
-    // Sets the optional "force" boolean
-    force = force || false;
-    
-    // Stores the currently selected card to return
-    var returnedCard = selectedCard;
-    
-    // Returns the selected card to its original destination, and resets the global location variable
+function deselectCard() {
+    // Sets the selected card's destination (from the selectedCardLocation hash)
     selectedCard.defineDestination( selectedCardLocation.x, selectedCardLocation.y, selectedCardLocation.scale );
+    // Moves the selected card to the deselected cards array
+    deselectedCards.unshift( selectedCard );
+    // Resets the selectedCard variables
     selectedCardLocation = {};
+    selectedCard = null;
+    // Returns the now-deselected card
+    return deselectedCards[0];
+
+}
+
+// Begins the current turn (once the endTurn process is complete)
+function beginTurn() {
+    // Sets turn variables
+    currentTurn++;
+    resourcePool = 0;
+    attackPool = 0;
     
-    // Forces an immediate deselection
-    if ( force ){
-        selectedCard = null;
-    // Allows the card to deselect after it moves to its destination (remaining in the foreground)
-    } else {
-        addToEventQueue( numUpdateSteps + 60, function(){   // FIXME deselectCard should not have knowledge of numUpdateSteps (especially before its definition)
-            selectedCard = null;
-        });
+    // Reveals the top card of the villain deck
+    addToEventQueue( numUpdateSteps + 80, drawFromVillainDeck );
+}
+
+// Ends the current turn (putting turn variables into transition)
+function endTurn() {
+    // Current Player
+    var currentPlayer = players[(currentTurn%playerCount)];
+    
+    // Cards to be put in discard
+    var toDiscard = playedCards.concat( currentPlayer.hand );
+    
+    // Function to be run on card update
+    var moveToDiscard = function( card ){
+        
+        // Makes sure cards are moving to the current location of the discard pile
+        if( playerPanel.hidden ){
+            if ( card.destY / canvasScale == HAND_ROW_Y )
+                card.defineYDestination( PLAYER_ROW_Y );
+        } else {
+            if ( card.destY / canvasScale == PLAYER_ROW_Y )
+                card.defineYDestination( HAND_ROW_Y );
+        }
+        
+        // Moves card to discard pile if appropriate, and returns boolean
+        if (card.atDestination()){
+            // Moves the card to the appropriate array
+            players[(currentTurn%playerCount)].discardPile.unshift(card);
+            return true;
+        } else {
+            return false;
+        }
     }
     
-    // Returns the (formerly) selected card
-    return returnedCard;
+    // Adds all of the toDiscard cards (and their condition) to transitionalCards
+    for( var i = 0; i < toDiscard.length; i++ ){
+        transitionalCards.push( { card: toDiscard[i].defineDestination( X_POSITIONS[6], playerPanel.hidden ? PLAYER_ROW_Y : HAND_ROW_Y, 0.3 ),
+                                  condition: moveToDiscard } );
+    }
+    
+    // Resets the played cards and player hand
+    playedCards = [];
+    currentPlayer.hand = [];
+    
+    // Method to check for beginTurn
+    var checkBeginTurn = function(){
+        if (transitionalCards.length < 1){
+            // Draw up at the end of the turn
+            players[(currentTurn%playerCount)].drawUp();
+            // Begin new turn
+            beginTurn();
+        } else {
+            eventQueue.push( {step: numUpdateSteps + 10, action: checkBeginTurn} );
+        }
+    }
+    
+    // Sets up the beginTurn method
+    eventQueue.push( {step: numUpdateSteps + 10, action: checkBeginTurn} );
 }
 
 
@@ -420,9 +478,14 @@ var drawSchemePanel = function( context ){
 
 // Draws the selected card
 var drawSelected = function( context ){
+    //
+    for ( var i = 0; i < deselectedCards.length; i++ ){
+        deselectedCards[i].draw(context);
+    }
+    
     // Forces the drawing of the selected card
     if( selectedCard ){
-        selectedCard.draw(context,true)
+        selectedCard.draw(context)
     }
 }
 
@@ -436,6 +499,13 @@ var drawShieldOfficers = function( context ){
     // Draws the top card of the deck
     if( shieldOfficersDeck.length > 0 )
         shieldOfficersDeck[0].draw( context );
+}
+
+// Draws the cards in the transitional cards array
+var drawTransitionalCards = function( context ){
+    for ( var i = 0; i < transitionalCards.length; i++ ){
+        transitionalCards[i].card.draw( context );
+    }
 }
 
 // Draws the Wounds deck
@@ -471,6 +541,9 @@ var drawActors = function( context ) {
     
     // Draw the player row (must be after hand row)
     drawPlayerPanel( context );
+    
+    // Draw transitional cards (cards moving around but in no location)
+    drawTransitionalCards( context );
     
     // Draw all controls (aka Buttons)
     drawControls( context );
@@ -509,6 +582,15 @@ var updateControls = function( modifier, steps ){
     }
 }
 
+// Updates the deselected cards array
+var updateDeselectedCards = function( modifier, steps ){
+    for ( var i = 0; i < deselectedCards.length; i++ ){
+        if( deselectedCards[i].atDestination() ){
+            deselectedCards = [];
+        }
+    }
+}
+
 // Update Escaped Villains
 var updateEscapedVillains = function( modifier, steps ){
     // TODO avoid processing ALL cards at once
@@ -532,12 +614,11 @@ var updateMastermind = function( modifier, steps ){
 
 // Updates the Played Cards array
 var updatePlayedCards = function( modifier, steps ){
-    if( playedCards.length > 1 )
-        playedCards[1].update( modifier, steps );
     
-    // Draws the top card of the deck
-    if( playedCards.length > 0 )
-        playedCards[0].update( modifier, steps );
+    // Updates the entire played cards stack to account for transition visuals
+    for ( var i = 0; i < playedCards.length; i++ )
+        playedCards[i].update( modifier, steps )
+
 }
 
 // Updates the Player Deck
@@ -613,6 +694,21 @@ var updateShieldOfficers = function( modifier, steps ){
     }
 }
 
+// Update Transitional Cards
+var updateTransitionalCards = function( modifier, steps ){
+    for( var i = 0; i < transitionalCards.length; i++ ){
+        // Runs the condition first (in case the condition function changes the stats for update)
+        var removeFromTransitional = transitionalCards[i].condition( transitionalCards[i].card );
+        // Updates the card
+        transitionalCards[i].card.update( modifier, steps );
+        // Removes from Transitional Cards, if appropriate
+        if( removeFromTransitional )
+            transitionalCards[i] = null;
+    }
+    // Filters out the removed cards
+    transitionalCards = transitionalCards.filter( function(value){ return value != null; });
+}
+
 // Update Wounds
 var updateWounds = function( modifier, steps ){
     // TODO make this logic smarter
@@ -644,6 +740,10 @@ var updateActors = function( modifier, steps ) {
     updateMastermind( modifier, steps );
     updateShieldOfficers( modifier, steps );
     players[(currentTurn % playerCount)].update( modifier, steps );
+    
+    // Updates Variables
+    updateDeselectedCards( modifier, steps );
+    updateTransitionalCards( modifier, steps ); // Must be after all possible card locations
     
     // Updates controls
     updateControls( modifier, steps );

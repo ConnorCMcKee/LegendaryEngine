@@ -25,6 +25,14 @@ var Card = Class.create({
     movementSpeed: 700.0 * canvasScale,
     scaleSpeed: 1.5,
     cardType: "Undefined",
+    // Determines if the card is at its destination
+    atDestination: function(){
+        if( this.x == this.destX && this.y == this.destY && this.scale == this.destScale ) {
+            return true;
+        } else {
+            return false;
+        }
+    },
     // Determines if the card is at a specific location
     atLocation: function( x, y, scale ){
         if( this.x == x*canvasScale && this.y == y*canvasScale && this.scale == scale ) {
@@ -48,6 +56,11 @@ var Card = Class.create({
         this.destX = dx * canvasScale;
         this.destY = dy * canvasScale;
         this.destScale = dscale;
+        return this;
+    },
+    //
+    defineXDestination: function( dx ){
+        this.destX = dx*canvasScale;
         return this;
     },
     //
@@ -202,12 +215,13 @@ var Bystander = Class.create(Card, {
 -------------------------------------------------- */
 var Hero = Class.create(Card, {
     initialize: function($super, options ){
-        $super( options.image, options.title, options.subtitle, options.text, options.faceDown );
+        $super( options.image, options.title, options.hero, options.text, options.faceDown );
         this.team = options.team;
+        this.hero = options.hero;
         this.colors = options.colors || ['gray'];
-        this.baseCost = options.baseCost || 0;
-        this.baseAttack = options.baseAttack || 0;
-        this.baseResource = options.baseResource || 0;
+        this.baseCost = options.baseCost;
+        this.baseAttack = options.baseAttack;
+        this.baseResource = options.baseResource;
         this.customPlay = options.customPlay || basePlay;
         this.getCost = options.getCost || baseGetCost;
         this.getAttack = options.customGetAttack || baseGetAttack;
@@ -236,12 +250,12 @@ var Hero = Class.create(Card, {
         // If the card is being rendered face UP
         if( !this.faceDown ){
             // Draws attack symbol and number
-            if (this.baseAttack != 0 && resourceReady('symbolAttack')) {
+            if (this.baseAttack != null && resourceReady('symbolAttack')) {
                 // Draws the image
                 ctx.drawImage(resourceImage('symbolAttack'), this.x-this.baseWidth*this.scale*0.45, this.y+this.baseHeight*this.scale*0.15, this.baseWidth*this.scale*0.1, this.baseWidth*this.scale*0.1 );
                 
                 // Draws the value
-                ctx.fillStyle = 'black';
+                ctx.fillStyle = this.attack() == this.baseAttack ? 'black' : 'green';
                 ctx.textBaseline = 'middle';
                 ctx.textAlign = 'center';
                 ctx.font = "bold " + 40*this.scale*canvasScale + "px Helvetica";
@@ -249,12 +263,12 @@ var Hero = Class.create(Card, {
             }
 
             // Draws resource symbol and number
-            if (this.baseResource != 0 && resourceReady('symbolResource')) {
+            if (this.baseResource != null && resourceReady('symbolResource')) {
                 // Draws the image
                 ctx.drawImage(resourceImage('symbolResource'), this.x-this.baseWidth*this.scale*0.45, this.y+this.baseHeight*this.scale*0.3, this.baseWidth*this.scale*0.12, this.baseWidth*this.scale*0.12 );
                 
                 // Draws the value
-                ctx.fillStyle = 'black';
+                ctx.fillStyle = this.resource() == this.baseResource ? 'black' : 'green';
                 ctx.textBaseline = 'middle';
                 ctx.textAlign = 'center';
                 ctx.font = "bold " + 40*this.scale*canvasScale + "px Helvetica";
@@ -262,7 +276,7 @@ var Hero = Class.create(Card, {
             }
             
             // Draws the cost symbol and number
-            if (this.baseCost != 0 ) {
+            if (this.baseCost != null ) {
                 // Draws the circle
                 context.beginPath();
                 context.arc(this.x+this.baseWidth*this.scale*0.38, this.y+this.baseHeight*this.scale*0.41, 30 * canvasScale * this.scale, 0, 2 * Math.PI, false);
@@ -435,12 +449,12 @@ var Player = Class.create({
         this.hand = [];
         // Builds the starting deck
         var trooperStats = {  title: 'Shield Trooper',
-                              subtitle: 'Shield',
+                              hero: 'Shield',
                               team: 'Shield',
                               baseAttack: 1,
                               faceDown: true };
         var agentStats = {  title: 'Shield Agent',
-                            subtitle: 'Shield',
+                            hero: 'Shield',
                             team: 'Shield',
                             baseResource: 1,
                             faceDown: true };
@@ -490,13 +504,25 @@ var Player = Class.create({
         }
     },
     drawCard: function(){
-        // Draws card
+        // Draws card TODO avoid errors on no remaining cards in deck OR discard
         if( this.drawDeck.length > 0 ){
+            // Adds the top card of the deck to the player hand
             this.hand.push( this.drawDeck.shift().defineLocation(X_POSITIONS[5],PLAYER_ROW_Y,0.3).flip() );
         } else {
+            // Flips the discard pile
+            for ( var i = 0; i < this.discardPile.length; i++ ) {
+                if ( i == 0 ) {
+                    this.discardPile[i].defineXDestination(X_POSITIONS[5]).flip();
+                } else {
+                    this.discardPile[i].defineLocation(X_POSITIONS[5],this.discardPile[i].destY/canvasScale,0.3).flip();
+                }
+            }
+            // Shuffles the discard pile into the draw pile
             this.drawDeck = shuffle( this.discardPile );
+            // Resets the discard pile
             this.discardPile = [];
-            this.hand.push( this.drawCard() );
+            // Recurses
+            this.drawCard();
         }
         
         // Arranges Hand

@@ -9,8 +9,10 @@ function canvasClick(event)
     var clickEventTriggered = false;
     
     for( var i = 0; i < controls.length; i++ ){
-        if( controls[i].visible && controls[i].enabled && controls[i].containsPoint(event.x, event.y) ){
-            controls[i].clickAction();
+        if( controls[i].visible && controls[i].containsPoint(event.x, event.y) ){
+            if( controls[i].enabled )
+                controls[i].clickAction();
+            
             clickEventTriggered = true;
             return;
         }
@@ -42,9 +44,12 @@ function canvasClick(event)
         if( playerPanel.hidden ){
             visibleCards = visibleCards.concat( player.hand );
         } else {
-            visibleCards.push( player.discardPile[0] );
-            visibleCards.push( player.victoryPile[0] );
-            visibleCards.push( playedCards[0] );
+            if( player.discardPile.length > 0 )
+                visibleCards.push( player.discardPile[0] );
+            if( player.victoryPile.length > 0 )
+                visibleCards.push( player.victoryPile[0] );
+            if( playedCards.length > 0 )
+                visibleCards.push( playedCards[0] );
         }
             
         

@@ -106,7 +106,7 @@ scheme = new Scheme( { title: 'Do Bad Stuff', text: '...and lots of it.' } );
 
 // Shield Officer Deck
 var shieldOfficerStats = { title: 'Shield Officer',
-                            subtitle: 'Shield',
+                            hero: 'Maria Hill',
                             team: 'Shield',
                             baseCost: 3,
                             baseResource: 3 };
@@ -255,7 +255,7 @@ controls.push( new Control({
     text: 'Player Panel',
     width: 120,
     height: 31,
-    x: 186,
+    x: 184,
     y: 16,
     visible: true,
     enableCondition: function(){
@@ -359,6 +359,22 @@ controls.push( new Control({
         
         // Toggles the hidden state of Scheme Panel
         schemePanel.hidden = !schemePanel.hidden;
+    }
+}));
+
+// Ends turn
+controls.push( new Control({
+    text: 'End Turn',
+    width: 120,
+    height: 31,
+    x: 1018,
+    y: 16,
+    visible: true,
+    enableCondition: function(){
+        return true;
+    },
+    customClickAction: function(){
+        endTurn();
     }
 }));
 
